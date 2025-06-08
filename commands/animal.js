@@ -46,25 +46,45 @@ export default async (event, type = null) => {
       const bubble = template()
 
       // 圖片網址 fallback
-      bubble.hero.url = value.album_file || 'https://via.placeholder.com/1024x720?text=No+Image'
+      const imageUrl = value.album_file || 'https://via.placeholder.com/1024x720?text=No+Image'
+      bubble.hero.url = imageUrl
 
-      // 點擊後跳轉網址 fallback
-      bubble.hero.action.uri =
-        value.Url ||
-        `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`
+      // 點擊後放大圖片
+      bubble.hero.action = {
+        type: 'uri',
+        label: '放大圖片',
+        uri: imageUrl,
+      }
 
-      // 安全賦值各欄位文字
-      bubble.body.contents[0].text = `認領開放狀態：${safeText(value.animal_status)}`
+      // 安全賦值各欄位文字，依據最新 template 格式
+      bubble.body.contents[0].text = `收容編號：${safeText(value.animal_subid)}`
+
       bubble.body.contents[1].contents[0].contents[0].text = `品種：${safeText(value.animal_Variety)}`
-      bubble.body.contents[1].contents[0].contents[1].text = `年齡：${safeText(value.animal_age)}`
-      bubble.body.contents[1].contents[1].contents[0].text = `體型：${safeText(value.animal_bodytype)}`
-      bubble.body.contents[1].contents[1].contents[1].text = `性別：${safeText(value.animal_sex)}`
-      bubble.body.contents[2].text = `備註：${safeText(value.animal_remark)}`
+      bubble.body.contents[1].contents[0].contents[0].action = {
+        type: 'postback',
+        label: 'action',
+        data: 'hello',
+      }
+      bubble.body.contents[1].contents[0].contents[1].text = safeText(value.animal_age)
 
-      bubble.footer.contents[1].contents[0].text = value.shelter_name
-      bubble.footer.contents[1].contents[1].contents[0].text = value.shelter_address
-      bubble.footer.contents[1].contents[1].contents[1].text = value.shelter_tel
-      bubble.footer.contents[1].contents[2].contents[0].action.uri = `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`
+      bubble.body.contents[1].contents[1].contents[0].text = safeText(value.animal_bodytype)
+      bubble.body.contents[1].contents[1].contents[1].text = safeText(value.animal_sex)
+
+      bubble.body.contents[1].contents[2].contents[0].text = safeText(value.animal_bacterin)
+      bubble.body.contents[1].contents[2].contents[1].text = safeText(value.animal_sterilization)
+
+      bubble.body.contents[2].text = safeText(value.animal_remark)
+
+      bubble.footer.contents[1].contents[0].text = safeText(value.shelter_name)
+      bubble.footer.contents[1].contents[1].contents[0].text = safeText(value.shelter_address)
+      bubble.footer.contents[1].contents[1].contents[1].text = safeText(value.shelter_tel)
+
+      bubble.footer.contents[1].contents[2].contents[0].action = {
+        type: 'uri',
+        label: 'Google地圖',
+        uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
+      }
+
       return bubble
     })
 
