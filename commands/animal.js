@@ -38,7 +38,7 @@ export default async (event, type = null) => {
         })
         .slice(0, 5)
     } else {
-      // 若沒有條件，顯示前5筆（你也可以改成回選單或提示）
+      // 若沒有條件，顯示前5筆
       filtered = data.slice(0, 5)
     }
 
@@ -56,7 +56,6 @@ export default async (event, type = null) => {
         uri: imageUrl,
       }
 
-      // 安全賦值各欄位文字，依據最新 template 格式
       bubble.body.contents[0].text = `收容編號：${safeText(value.animal_subid)}`
 
       bubble.body.contents[1].contents[0].contents[0].text = `品種：${safeText(value.animal_Variety)}`
@@ -65,15 +64,15 @@ export default async (event, type = null) => {
         label: 'action',
         data: 'hello',
       }
-      bubble.body.contents[1].contents[0].contents[1].text = safeText(value.animal_age)
+      bubble.body.contents[1].contents[0].contents[1].text = `年齡：${safeText(value.animal_age)}`
 
-      bubble.body.contents[1].contents[1].contents[0].text = safeText(value.animal_bodytype)
-      bubble.body.contents[1].contents[1].contents[1].text = safeText(value.animal_sex)
+      bubble.body.contents[1].contents[1].contents[0].text = `體型：${safeText(value.animal_bodytype)}`
+      bubble.body.contents[1].contents[1].contents[1].text = `性別：${safeText(value.animal_sex)}`
 
-      bubble.body.contents[1].contents[2].contents[0].text = safeText(value.animal_bacterin)
-      bubble.body.contents[1].contents[2].contents[1].text = safeText(value.animal_sterilization)
+      bubble.body.contents[1].contents[2].contents[0].text = `是否施打狂犬病疫苗：${safeText(value.animal_bacterin)}`
+      bubble.body.contents[1].contents[2].contents[1].text = `絕育：${safeText(value.animal_sterilization)}`
 
-      bubble.body.contents[2].text = safeText(value.animal_remark)
+      bubble.body.contents[2].text = `備註：${safeText(value.animal_remark)}`
 
       bubble.footer.contents[1].contents[0].text = safeText(value.shelter_name)
       bubble.footer.contents[1].contents[1].contents[0].text = safeText(value.shelter_address)
