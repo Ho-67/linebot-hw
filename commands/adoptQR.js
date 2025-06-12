@@ -1,11 +1,11 @@
-import animal from '../commands/animal.js'
+import commandAnimal from './commands/animal.js'
 
-export default async function adopt(event) {
-  const data = event.postback.data
-  const parts = data.split('|')
+// 主功能：處理認領養選單流程
+export default async function adopt(event, isFirstTime = false) {
+  const data = event.postback?.data
 
-  if (event.message.text === '認領養') {
-    // 第一層：選擇動物種類
+  // 初次進入：輸入「認領養」時，顯示第一層
+  if (isFirstTime || !data) {
     await event.reply({
       type: 'text',
       text: '請選擇認領養的動物種類：',
@@ -14,15 +14,20 @@ export default async function adopt(event) {
           type: 'action',
           action: {
             type: 'postback',
-            label, // 按鈕文字
-            data: label, // 傳去postback事件的資料
-            displayText: label, // 使用者傳送的文字
+            label,
+            data: label,
+            displayText: label,
           },
         })),
       },
     })
-  } else if (parts.length === 1) {
-    // 第二層：選地區
+    return
+  }
+
+  // 非第一次進入時，依照層級進行處理
+  const parts = data.split('|')
+
+  if (parts.length === 1) {
     const [animalType] = parts
     await event.reply({
       type: 'text',
@@ -40,7 +45,6 @@ export default async function adopt(event) {
       },
     })
   } else if (parts.length === 2) {
-    // 第三層：選縣市
     const [animalType, regionBig] = parts
 
     let cityOptions = []
@@ -80,9 +84,7 @@ export default async function adopt(event) {
       },
     })
   } else if (parts.length === 3) {
-    // 第四層：選年齡
     const [animalType, regionBig, city] = parts
-
     await event.reply({
       type: 'text',
       text: '請選擇動物年齡：',
@@ -99,7 +101,7 @@ export default async function adopt(event) {
       },
     })
   } else if (parts.length === 4) {
-    return animal(event, parts)
+    commandAnimal(event)
   } else {
     await event.reply('無效的選擇，請重新開始。')
   }

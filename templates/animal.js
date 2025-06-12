@@ -3,8 +3,8 @@ export default () => ({
   hero: {
     type: 'image',
     url: 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png',
-    size: 'lg',
-    aspectRatio: '3:2',
+    size: 'full',
+    aspectRatio: '16:9',
     aspectMode: 'cover',
   },
   body: {
@@ -15,7 +15,7 @@ export default () => ({
       {
         type: 'text',
         text: 'animal_subid',
-        size: 'xl',
+        size: 'md',
         weight: 'bold',
         align: 'center',
       },

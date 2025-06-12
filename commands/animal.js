@@ -28,18 +28,28 @@ export default async (event, type = null) => {
         })
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 5)
-    } else if (type) {
-      // postback 篩選
+    } else if (Array.isArray(type)) {
+      const [animalType, city, age] = type
+
       filtered = data
         .filter((item) => {
-          if (type === '狗') return item.animal_kind === '狗'
-          if (type === '貓') return item.animal_kind === '貓'
-          return item.animal_kind !== '狗' && item.animal_kind !== '貓'
+          // 只要有一項不符合就排除
+          const kindMatch =
+            animalType === '狗'
+              ? item.animal_kind === '狗'
+              : animalType === '貓'
+                ? item.animal_kind === '貓'
+                : item.animal_kind !== '狗' && item.animal_kind !== '貓'
+
+          const cityMatch = item.animal_city?.includes(city) || item.animal_place?.includes(city)
+          const ageMatch =
+            age === '未成年'
+              ? item.animal_age?.includes('幼') || item.animal_age?.includes('小')
+              : item.animal_age?.includes('成年') || item.animal_age?.includes('成')
+
+          return kindMatch && cityMatch && ageMatch
         })
         .slice(0, 5)
-    } else {
-      // 若沒有條件，顯示前5筆
-      filtered = data.slice(0, 5)
     }
 
     const bubbles = filtered.map((value) => {
