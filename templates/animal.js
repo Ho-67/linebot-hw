@@ -4,7 +4,7 @@ export default () => ({
     type: 'image',
     url: 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png',
     size: 'full',
-    aspectRatio: '16:9',
+    aspectRatio: '20:13',
     aspectMode: 'cover',
   },
   body: {
@@ -31,14 +31,10 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_Variety',
+                size: 'sm',
                 weight: 'bold',
                 margin: 'sm',
                 flex: 0,
-                action: {
-                  type: 'postback',
-                  label: 'action',
-                  data: 'hello',
-                },
               },
               {
                 type: 'text',
@@ -56,6 +52,7 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_bodytype',
+                size: 'sm',
                 weight: 'bold',
                 margin: 'sm',
                 flex: 0,
@@ -76,6 +73,7 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_bacterin',
+                size: 'sm',
                 weight: 'bold',
                 margin: 'sm',
                 flex: 0,
