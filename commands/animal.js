@@ -12,18 +12,24 @@ export default async (event, type = null) => {
     const safeText = (text) => (text ? text : '無資料')
 
     if (event.message?.type === 'location') {
+      const userLat = event.message.latitude
+      const userLng = event.message.longitude
+
       filtered = data
+        .filter((item) => item.Latitude && item.Longitude) // 有經緯度才保留
         .map((item) => {
           const lat = Number(item.Latitude)
           const lng = Number(item.Longitude)
-          const userLat = event.message.latitude
-          const userLng = event.message.longitude
-
           item.distance = distance(lat, lng, userLat, userLng, 'K')
           return item
         })
+        .filter((item) => !isNaN(item.distance)) // 移除距離為 NaN 的項目
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 5)
+
+      if (filtered.length === 0) {
+        return await event.reply('抱歉，目前附近沒有找到可領養的動物')
+      }
     } else if (Array.isArray(type)) {
       const [animalType, city, age] = type
 

@@ -4,7 +4,7 @@ export default () => ({
     type: 'image',
     url: 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png',
     size: 'full',
-    aspectRatio: '20:13',
+    aspectRatio: '16:13',
     aspectMode: 'cover',
   },
   body: {
