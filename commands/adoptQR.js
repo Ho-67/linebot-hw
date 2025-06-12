@@ -1,4 +1,4 @@
-import commandAnimal from './commands/animal.js'
+import commandAnimal from './animal.js'
 
 // 主功能：處理認領養選單流程
 export default async function adopt(event, isFirstTime = false) {
