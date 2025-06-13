@@ -55,6 +55,7 @@ export default async (event, type = null) => {
 
       filtered = data
         .filter((item) => {
+          // 動物種類判斷
           const kindMatch =
             animalType === '狗'
               ? item.animal_kind === '狗'
@@ -62,16 +63,21 @@ export default async (event, type = null) => {
                 ? item.animal_kind === '貓'
                 : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-          const cityMatch = item.animal_city?.includes(city) || item.animal_place?.includes(city)
+          // 地區判斷，用 animal_place，regionBig 暫時沒用，可以看需求加上
+          const cityMatch = item.animal_place?.includes(city)
 
+          // 年齡判斷
           const ageMatch =
             age === '未成年'
-              ? item.animal_age?.includes('幼') || item.animal_age?.includes('小')
-              : item.animal_age?.includes('成年') || item.animal_age?.includes('成')
+              ? item.animal_age?.toUpperCase() === 'CHILD'
+              : age === '成年'
+                ? item.animal_age?.toUpperCase() === 'ADULT'
+                : true // 如果 age 其他值，就不篩選
 
-          const bodyMatch =
-            item.animal_bodytype === bodytype || bodyTypeMap[item.animal_bodytype] === bodytype
+          // 體型判斷，map 對應中文
+          const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
 
+          // 性別判斷
           const sexMatch = genderMap[item.animal_sex] === sex
 
           return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
