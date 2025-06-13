@@ -80,6 +80,24 @@ export default async (event, type = null) => {
           // 性別判斷
           const sexMatch = genderMap[item.animal_sex] === sex
 
+          console.log({
+            kindMatch,
+            cityMatch,
+            ageMatch,
+            bodyMatch,
+            sexMatch,
+            animal_kind: item.animal_kind,
+            shelter_address: item.shelter_address,
+            animal_age: item.animal_age,
+            animal_bodytype: item.animal_bodytype,
+            animal_sex: item.animal_sex,
+            animalType,
+            city,
+            age,
+            bodytype,
+            sex,
+          })
+
           return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
         })
         .slice(0, 5)
