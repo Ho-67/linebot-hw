@@ -50,40 +50,41 @@ export default async (event, type = null) => {
         .filter((item) => !isNaN(item.distance))
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 5)
-    } else if (Array.isArray(type)) {
-      const [animalType, regionBig, city, age, bodytype, sex] = type
-
-      filtered = data
-        .filter((item) => {
-          // 動物種類判斷
-          const kindMatch =
-            animalType === '狗'
-              ? item.animal_kind === '狗'
-              : animalType === '貓'
-                ? item.animal_kind === '貓'
-                : item.animal_kind !== '狗' && item.animal_kind !== '貓'
-
-          // 地區判斷，用 animal_place，regionBig 暫時沒用，可以看需求加上
-          const cityMatch = item.animal_place?.includes(city)
-
-          // 年齡判斷
-          const ageMatch =
-            age === '未成年'
-              ? item.animal_age?.toUpperCase() === 'CHILD'
-              : age === '成年'
-                ? item.animal_age?.toUpperCase() === 'ADULT'
-                : true // 如果 age 其他值，就不篩選
-
-          // 體型判斷，map 對應中文
-          const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
-
-          // 性別判斷
-          const sexMatch = genderMap[item.animal_sex] === sex
-
-          return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
-        })
-        .slice(0, 5)
     }
+    // else if (Array.isArray(type)) {
+    //   const [animalType, regionBig, city, age, bodytype, sex] = type
+
+    //   filtered = data
+    //     .filter((item) => {
+    //       // 動物種類判斷
+    //       const kindMatch =
+    //         animalType === '狗'
+    //           ? item.animal_kind === '狗'
+    //           : animalType === '貓'
+    //             ? item.animal_kind === '貓'
+    //             : item.animal_kind !== '狗' && item.animal_kind !== '貓'
+
+    //       // 地區判斷，用 animal_place，regionBig 暫時沒用，可以看需求加上
+    //       const cityMatch = item.animal_place?.includes(city)
+
+    //       // 年齡判斷
+    //       const ageMatch =
+    //         age === '未成年'
+    //           ? item.animal_age?.toUpperCase() === 'CHILD'
+    //           : age === '成年'
+    //             ? item.animal_age?.toUpperCase() === 'ADULT'
+    //             : true // 如果 age 其他值，就不篩選
+
+    //       // 體型判斷，map 對應中文
+    //       const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
+
+    //       // 性別判斷
+    //       const sexMatch = genderMap[item.animal_sex] === sex
+
+    //       return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
+    //     })
+    //     .slice(0, 5)
+    // }
 
     if (filtered.length === 0) {
       return await event.reply('抱歉，目前附近沒有找到可領養的動物')
