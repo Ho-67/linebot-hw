@@ -4,26 +4,18 @@ export default () => ({
     type: 'image',
     url: 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png',
     size: 'full',
-    aspectRatio: '20:13',
+    aspectRatio: '16:13',
     aspectMode: 'cover',
-    action: {
-      type: 'uri',
-      uri: 'https://line.me/',
-    },
   },
   body: {
     type: 'box',
     layout: 'vertical',
     spacing: 'md',
-    action: {
-      type: 'uri',
-      uri: 'https://line.me/',
-    },
     contents: [
       {
         type: 'text',
-        text: 'animal_status',
-        size: 'xl',
+        text: 'animal_subid',
+        size: 'md',
         weight: 'bold',
         align: 'center',
       },
@@ -39,14 +31,10 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_Variety',
+                size: 'sm',
                 weight: 'bold',
                 margin: 'sm',
                 flex: 0,
-                action: {
-                  type: 'postback',
-                  label: 'action',
-                  data: 'hello',
-                },
               },
               {
                 type: 'text',
@@ -64,6 +52,7 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_bodytype',
+                size: 'sm',
                 weight: 'bold',
                 margin: 'sm',
                 flex: 0,
@@ -71,6 +60,27 @@ export default () => ({
               {
                 type: 'text',
                 text: 'animal_sex',
+                size: 'sm',
+                align: 'end',
+                weight: 'bold',
+              },
+            ],
+          },
+          {
+            type: 'box',
+            layout: 'baseline',
+            contents: [
+              {
+                type: 'text',
+                text: 'animal_bacterin',
+                size: 'sm',
+                weight: 'bold',
+                margin: 'sm',
+                flex: 0,
+              },
+              {
+                type: 'text',
+                text: 'animal_sterilization',
                 size: 'sm',
                 align: 'end',
                 weight: 'bold',
@@ -85,6 +95,7 @@ export default () => ({
         wrap: true,
         color: '#aaaaaa',
         size: 'xs',
+        margin: 'md',
       },
     ],
   },
@@ -115,6 +126,7 @@ export default () => ({
               {
                 type: 'text',
                 text: 'shelter_address',
+                wrap: true,
                 size: 'sm',
                 align: 'center',
               },
@@ -123,6 +135,7 @@ export default () => ({
                 text: 'shelter_tel',
                 size: 'sm',
                 align: 'center',
+                wrap: true,
               },
             ],
           },
