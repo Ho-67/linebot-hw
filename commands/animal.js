@@ -19,13 +19,13 @@ const bodyTypeMap = {
 }
 
 const vaccineMap = {
-  T: '是',
-  F: '否',
+  是: 'T',
+  否: 'F',
 }
 
 const sterilizationMap = {
-  T: '是',
-  F: '否',
+  是: 'T',
+  否: 'F',
 }
 
 const safeText = (text) => {
@@ -56,7 +56,7 @@ export default async (event, type = null) => {
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 5)
     } else if (Array.isArray(type)) {
-      const [animalType, regionBig, city, age, bodytype, sex] = type
+      const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
 
       filtered = data
         .filter((item) => {
@@ -74,75 +74,38 @@ export default async (event, type = null) => {
           // 年齡判斷
           const ageMatch = ageMap[item.animal_age] === age
 
-          // 體型判斷，map 對應中文
+          // 體型判斷
           const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
 
           // 性別判斷
           const sexMatch = genderMap[item.animal_sex] === sex
 
-          console.log({
-            kindMatch,
-            cityMatch,
-            ageMatch,
-            bodyMatch,
-            sexMatch,
-            animal_kind: item.animal_kind,
-            shelter_address: item.shelter_address,
-            animal_age: item.animal_age,
-            animal_bodytype: item.animal_bodytype,
-            animal_sex: item.animal_sex,
-            animalType,
-            city,
-            age,
-            bodytype,
-            sex,
-          })
+          // 施打疫苗判斷
+          const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
 
-          return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
+          // 絕育判斷
+          const sterilizationMatch = sterilization
+            ? item.animal_sterilization === sterilizationMap[sterilization]
+            : true
+
+          return (
+            kindMatch &&
+            cityMatch &&
+            ageMatch &&
+            bodyMatch &&
+            sexMatch &&
+            vaccineMatch &&
+            sterilizationMatch
+          )
         })
         .slice(0, 5)
     }
 
     if (filtered.length === 0) {
-      return await event.reply('抱歉，目前附近沒有找到可領養的動物')
+      return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    const bubbles = filtered.map((value) => {
-      const bubble = template()
-
-      const imageUrl = value.album_file || 'https://via.placeholder.com/1024x720?text=No+Image'
-      bubble.hero.url = imageUrl
-      bubble.hero.action = {
-        type: 'uri',
-        label: '放大圖片',
-        uri: imageUrl,
-      }
-
-      bubble.body.contents[0].text = `收容編號：${safeText(value.animal_subid)}`
-
-      bubble.body.contents[1].contents[0].contents[0].text = `品種：${safeText(value.animal_Variety)}`
-      bubble.body.contents[1].contents[0].contents[1].text = `年齡：${ageMap[value.animal_age] || safeText(value.animal_age)}`
-
-      bubble.body.contents[1].contents[1].contents[0].text = `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype)}`
-      bubble.body.contents[1].contents[1].contents[1].text = `性別：${genderMap[value.animal_sex] || safeText(value.animal_sex)}`
-
-      bubble.body.contents[1].contents[2].contents[0].text = `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || safeText(value.animal_bacterin)}`
-      bubble.body.contents[1].contents[2].contents[1].text = `絕育：${sterilizationMap[value.animal_sterilization] || safeText(value.animal_sterilization)}`
-
-      bubble.body.contents[2].text = `備註：${safeText(value.animal_remark)}`
-
-      bubble.footer.contents[1].contents[0].text = safeText(value.shelter_name)
-      bubble.footer.contents[1].contents[1].contents[0].text = safeText(value.shelter_address)
-      bubble.footer.contents[1].contents[1].contents[1].text = safeText(value.shelter_tel)
-
-      bubble.footer.contents[1].contents[2].contents[0].action = {
-        type: 'uri',
-        label: 'Google地圖',
-        uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
-      }
-
-      return bubble
-    })
+    const bubbles = filtered.map((value) => template(value))
 
     await event.reply({
       type: 'flex',
