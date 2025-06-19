@@ -68,19 +68,19 @@ export default async (event, type = null) => {
 
         console.log(
           `🧾 item ${item.animal_id}:`,
-          '種:',
+          '品種:',
           kindMatch,
-          '市:',
+          '地區:',
           cityMatch,
-          '年:',
+          '年齡:',
           ageMatch,
-          '體:',
+          '體型:',
           bodyMatch,
-          '性:',
+          '性別:',
           sexMatch,
-          '疫:',
+          '疫苗:',
           vaccineMatch,
-          '絕:',
+          '絕育:',
           sterilizationMatch,
         )
 

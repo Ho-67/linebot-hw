@@ -82,7 +82,7 @@ export default (value) => {
                 },
                 {
                   type: 'text',
-                  text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age)}`,
+                  text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype)}`,
                   size: 'sm',
                   align: 'end',
                   weight: 'bold',
@@ -95,7 +95,7 @@ export default (value) => {
               contents: [
                 {
                   type: 'text',
-                  text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype)}`,
+                  text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age)}`,
                   weight: 'bold',
                   flex: 0,
                   size: 'sm',
@@ -158,16 +158,6 @@ export default (value) => {
           align: 'center',
           wrap: true,
           offsetTop: 'md',
-          margin: 'xs',
-        },
-        {
-          type: 'text',
-          text: safeText(value.shelter_address),
-          align: 'center',
-          offsetTop: 'md',
-          size: 'sm',
-          wrap: true,
-          maxLines: 3,
           margin: 'xs',
         },
         {
