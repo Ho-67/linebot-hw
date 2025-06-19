@@ -40,10 +40,16 @@ export default async (event, type = null) => {
       )
 
       filtered = data.filter((item) => {
-        let kindMatch = true
-        if (animalType === '狗') kindMatch = item.animal_kind === '狗'
-        else if (animalType === '貓') kindMatch = item.animal_kind === '貓'
-        const cityMatch = city ? item.shelter_address?.includes(city) : true
+        const kindMatch =
+          animalType === '狗'
+            ? item.animal_kind === '狗'
+            : animalType === '貓'
+              ? item.animal_kind === '貓'
+              : item.animal_kind !== '狗' && item.animal_kind !== '貓'
+
+        const cityMatch = city
+          ? item.shelter_address.includes(city)
+          : item.shelter_address.includes(regionBig)
 
         const ageMatch = age ? ageMap[item.animal_age] === age : true
 
