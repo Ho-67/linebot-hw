@@ -137,8 +137,7 @@ export default (value) => {
           wrap: true,
           color: '#999999',
           size: 'sm',
-          maxLines: 4,
-          scaling: true,
+          maxLines: 5,
         },
       ],
       backgroundColor: '#f5f7e9',
@@ -159,7 +158,6 @@ export default (value) => {
           align: 'center',
           wrap: true,
           offsetTop: 'md',
-          adjustMode: 'shrink-to-fit',
           margin: 'xs',
         },
         {
@@ -178,7 +176,6 @@ export default (value) => {
           size: 'sm',
           align: 'center',
           offsetTop: 'sm',
-          adjustMode: 'shrink-to-fit',
           margin: 'xs',
         },
         {
@@ -188,7 +185,7 @@ export default (value) => {
           action: {
             type: 'uri',
             uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
-            label: 'value.shelter_address',
+            label: safeText(value.shelter_address),
           },
           color: '#0b748a',
         },

@@ -135,7 +135,7 @@ export default async function adopt(event, isFirstTime = false) {
       },
     })
   } else if (parts.length === 6) {
-    commandAnimal(event)
+    await commandAnimal(event, parts) // 正確帶入 6 個條件參數
   } else {
     await event.reply('無效的選擇，請重新開始。')
   }

@@ -105,7 +105,20 @@ export default async (event, type = null) => {
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    const bubbles = filtered.map((value) => template(value))
+    const bubbles = filtered
+      .map((value) => {
+        try {
+          return template(value)
+        } catch (e) {
+          console.error('Flex Bubble 產生錯誤：', e, value)
+          return null
+        }
+      })
+      .filter(Boolean)
+
+    if (bubbles.length === 0) {
+      return await event.reply('目前沒有可以顯示的動物資料')
+    }
 
     await event.reply({
       type: 'flex',

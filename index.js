@@ -24,7 +24,7 @@ bot.on('message', (event) => {
 
 bot.on('postback', async (event) => {
   // 根據 postback 資料處理認養流程
-  commandAdopt(event) // 傳送選單
+  await commandAdopt(event) // 傳送選單
 })
 
 bot.listen('/', process.env.PORT || 3000, () => {
