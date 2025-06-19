@@ -18,7 +18,6 @@ const bodyTypeMap = {
   BIG: '大',
 }
 
-// 將中文選項轉成API用的T/F
 const vaccineMap = {
   是: 'T',
   否: 'F',
@@ -29,13 +28,20 @@ const sterilizationMap = {
   否: 'F',
 }
 
+// 洗牌函式，用來隨機打亂陣列順序
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
+}
+
 export default async (event, type = null) => {
   try {
     const { data } = await axios.get(
       'https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL&IsTransData=1',
     )
-
-    console.log('取得資料筆數:', data.length)
 
     let filtered = data
 
@@ -51,52 +57,42 @@ export default async (event, type = null) => {
           return item
         })
         .filter((item) => !isNaN(item.distance))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 5)
 
-      console.log('位置查詢篩選後筆數:', filtered.length)
+      // 改成隨機抽5筆
+      filtered = shuffleArray(filtered).slice(0, 5)
     } else if (Array.isArray(type)) {
       const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
 
-      filtered = data
-        .filter((item) => {
-          const kindMatch =
-            animalType === '狗'
-              ? item.animal_kind === '狗'
-              : animalType === '貓'
-                ? item.animal_kind === '貓'
-                : item.animal_kind !== '狗' && item.animal_kind !== '貓'
+      filtered = data.filter((item) => {
+        const kindMatch =
+          animalType === '狗'
+            ? item.animal_kind === '狗'
+            : animalType === '貓'
+              ? item.animal_kind === '貓'
+              : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-          const cityMatch = item.shelter_address?.includes(city)
+        const cityMatch = item.shelter_address?.includes(city)
+        const ageMatch = ageMap[item.animal_age] === age
+        const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
+        const sexMatch = genderMap[item.animal_sex] === sex
+        const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
+        const sterilizationMatch = sterilization
+          ? item.animal_sterilization === sterilizationMap[sterilization]
+          : true
 
-          const ageMatch = ageMap[item.animal_age] === age
+        return (
+          kindMatch &&
+          cityMatch &&
+          ageMatch &&
+          bodyMatch &&
+          sexMatch &&
+          vaccineMatch &&
+          sterilizationMatch
+        )
+      })
 
-          const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
-
-          const sexMatch = genderMap[item.animal_sex] === sex
-
-          const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
-
-          const sterilizationMatch = sterilization
-            ? item.animal_sterilization === sterilizationMap[sterilization]
-            : true
-
-          // 除錯用
-          // console.log({ kindMatch, cityMatch, ageMatch, bodyMatch, sexMatch, vaccineMatch, sterilizationMatch, animal_id: item.animal_id })
-
-          return (
-            kindMatch &&
-            cityMatch &&
-            ageMatch &&
-            bodyMatch &&
-            sexMatch &&
-            vaccineMatch &&
-            sterilizationMatch
-          )
-        })
-        .slice(0, 5)
-
-      console.log('條件過濾後筆數:', filtered.length)
+      // 這裡改成隨機抽5筆
+      filtered = shuffleArray(filtered).slice(0, 5)
     }
 
     if (filtered.length === 0) {
