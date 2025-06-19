@@ -29,7 +29,6 @@ export default async (event, type = null) => {
 
     let filtered = data
 
-    // 如果是位置訊息，提醒使用選單查詢
     if (event.message?.type === 'location') {
       return await event.reply('目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
     }
@@ -68,7 +67,6 @@ export default async (event, type = null) => {
 
       console.log('篩選後筆數:', filtered.length)
 
-      // 隨機抽五筆
       filtered = shuffleArray(filtered).slice(0, 5)
       console.log('隨機抽取後筆數:', filtered.length)
     }
@@ -78,28 +76,13 @@ export default async (event, type = null) => {
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    const bubbles = filtered
-      .map((value) => {
-        try {
-          return template(value)
-        } catch (e) {
-          console.error('Flex Bubble 產生錯誤：', e.message, value)
-          return null
-        }
-      })
-      .filter(Boolean)
-
-    if (bubbles.length === 0) {
-      return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
-    }
+    // 單筆測試輸出一張卡片
+    console.log('單筆 Flex 訊息內容:', JSON.stringify(template(filtered[0]), null, 2))
 
     await event.reply({
       type: 'flex',
-      altText: '認領養動物列表',
-      contents: {
-        type: 'carousel',
-        contents: bubbles,
-      },
+      altText: '單筆測試',
+      contents: template(filtered[0]),
     })
   } catch (error) {
     console.error('commandAnimal 錯誤:', error)
