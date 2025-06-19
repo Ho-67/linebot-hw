@@ -42,7 +42,10 @@ export default async (event, type = null) => {
               ? item.animal_kind === '貓'
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-        const cityMatch = item.shelter_address?.includes(city)
+        const cityMatch =
+          regionBig || city
+            ? item.shelter_address?.includes(regionBig) || item.shelter_address?.includes(city)
+            : true
 
         const ageMatch = age ? ageMap[item.animal_age] === age : true
 
