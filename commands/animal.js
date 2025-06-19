@@ -4,6 +4,8 @@ import template from '../templates/animal.js'
 const ageMap = { ADULT: '已成年', CHILD: '未成年', N: '待確認' }
 const genderMap = { F: '母', M: '公', N: '待確認' }
 const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大', N: '待確認' }
+const vaccineMap = { 是: 'T', 否: 'F' }
+const sterilizationMap = { 是: 'T', 否: 'F' }
 
 // 洗牌函式
 function shuffleArray(array) {
@@ -12,12 +14,6 @@ function shuffleArray(array) {
     ;[array[i], array[j]] = [array[j], array[i]]
   }
   return array
-}
-
-// 保護 map lookup 的函式
-const safeValue = (map, key) => {
-  if (!key || typeof key !== 'string') return '待確認'
-  return map[key.trim()] || '待確認'
 }
 
 export default async (event, type = null) => {
@@ -35,7 +31,7 @@ export default async (event, type = null) => {
 
     if (Array.isArray(type)) {
       console.log('篩選條件 (type array):', type)
-      const [animalType, regionBig, city, age, bodytype, sex] = type
+      const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
 
       console.log(
         '範例地址 list:',
@@ -50,39 +46,83 @@ export default async (event, type = null) => {
               ? item.animal_kind === '貓'
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-        const cityMatch = city
-          ? item.shelter_address?.includes(city)
-          : item.shelter_address?.includes(regionBig)
+        const cityMatch = item.shelter_address?.includes(city)
 
-        const ageMatch = age ? safeValue(ageMap, item.animal_age) === age : true
+        const ageMatch = age && age !== '待確認' ? ageMap[item.animal_age] === age : true
 
-        const bodyMatch = bodytype
-          ? safeValue(bodyTypeMap, item.animal_bodytype) === bodytype
+        const bodyMatch =
+          bodytype && bodytype !== '待確認' ? bodyTypeMap[item.animal_bodytype] === bodytype : true
+
+        const sexMatch = sex && sex !== '待確認' ? genderMap[item.animal_sex] === sex : true
+
+        const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
+
+        const sterilizationMatch = sterilization
+          ? item.animal_sterilization === sterilizationMap[sterilization]
           : true
 
-        const sexMatch = sex ? safeValue(genderMap, item.animal_sex) === sex : true
+        console.log(
+          `item ${item.animal_id}:`,
+          '品種:',
+          kindMatch,
+          '縣市:',
+          cityMatch,
+          '年齡:',
+          ageMatch,
+          '體型:',
+          bodyMatch,
+          '性別:',
+          sexMatch,
+          '疫苗:',
+          vaccineMatch,
+          '絕育:',
+          sterilizationMatch,
+        )
 
-        return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
+        return (
+          kindMatch &&
+          cityMatch &&
+          ageMatch &&
+          bodyMatch &&
+          sexMatch &&
+          vaccineMatch &&
+          sterilizationMatch
+        )
       })
 
       console.log('篩選後筆數:', filtered.length)
 
+      // 隨機抽五筆
       filtered = shuffleArray(filtered).slice(0, 5)
       console.log('隨機抽取後筆數:', filtered.length)
     }
 
     if (filtered.length === 0) {
-      console.log('沒有符合的動物，原始條件如下：', { type })
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    // 單筆測試輸出一張卡片
-    console.log('單筆 Flex 訊息內容:', JSON.stringify(template(filtered[0]), null, 2))
+    const bubbles = filtered
+      .map((value) => {
+        try {
+          return template(value)
+        } catch (e) {
+          console.error('Flex Bubble 產生錯誤：', e, value)
+          return null
+        }
+      })
+      .filter(Boolean)
+
+    if (bubbles.length === 0) {
+      return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
+    }
 
     await event.reply({
       type: 'flex',
-      altText: '單筆測試',
-      contents: template(filtered[0]),
+      altText: '認領養動物列表',
+      contents: {
+        type: 'carousel',
+        contents: bubbles,
+      },
     })
   } catch (error) {
     console.error('commandAnimal 錯誤:', error)

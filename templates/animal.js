@@ -2,32 +2,30 @@ export default (value) => {
   const ageMap = {
     ADULT: '已成年',
     CHILD: '未成年',
-    N: '待確認',
+    N: '待確認', // 加上待確認
   }
 
   const genderMap = {
     F: '母',
     M: '公',
-    N: '待確認',
+    N: '待確認', // 加上待確認
   }
 
   const bodyTypeMap = {
     SMALL: '小',
     MEDIUM: '中',
     BIG: '大',
-    N: '待確認',
+    N: '待確認', // 加上待確認
   }
 
   const vaccineMap = {
     T: '是',
     F: '否',
-    N: '待確認',
   }
 
   const sterilizationMap = {
     T: '是',
     F: '否',
-    N: '待確認',
   }
 
   const safeText = (text) => {

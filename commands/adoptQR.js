@@ -106,7 +106,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物體型：',
       quickReply: {
-        items: ['大', '中', '小'].map((bodytype) => ({
+        items: ['大', '中', '小', '待確認'].map((bodytype) => ({
           type: 'action',
           action: {
             type: 'postback',
