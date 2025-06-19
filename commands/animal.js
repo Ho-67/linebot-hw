@@ -7,11 +7,6 @@ const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大' }
 const vaccineMap = { 是: 'T', 否: 'F' }
 const sterilizationMap = { 是: 'T', 否: 'F' }
 
-const safeText = (text) => {
-  const cleaned = String(text || '').trim()
-  return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
-}
-
 // 洗牌函式
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -26,21 +21,21 @@ export default async (event, type = null) => {
     const { data } = await axios.get(
       'https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL&IsTransData=1',
     )
-    console.log('✅ 取得資料筆數:', data.length)
+    console.log('取得資料筆數:', data.length)
 
     let filtered = data
 
     // 如果是位置訊息，提醒使用選單查詢
     if (event.message?.type === 'location') {
-      return await event.reply('📍 目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
+      return await event.reply('目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
     }
 
     if (Array.isArray(type)) {
-      console.log('🕵️ 篩選條件 (type array):', type)
+      console.log('篩選條件 (type array):', type)
       const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
 
       console.log(
-        '📍 範例地址 list:',
+        '範例地址 list:',
         data.slice(0, 5).map((i) => i.shelter_address),
       )
 
@@ -67,10 +62,10 @@ export default async (event, type = null) => {
           : true
 
         console.log(
-          `🧾 item ${item.animal_id}:`,
+          `item ${item.animal_id}:`,
           '品種:',
           kindMatch,
-          '地區:',
+          '縣市:',
           cityMatch,
           '年齡:',
           ageMatch,
@@ -95,15 +90,15 @@ export default async (event, type = null) => {
         )
       })
 
-      console.log('🔍 篩選後筆數:', filtered.length)
+      console.log('篩選後筆數:', filtered.length)
 
       // 隨機抽五筆
       filtered = shuffleArray(filtered).slice(0, 5)
-      console.log('🎲 隨機抽取後筆數:', filtered.length)
+      console.log('隨機抽取後筆數:', filtered.length)
     }
 
     if (filtered.length === 0) {
-      return await event.reply('抱歉，目前沒有找到符合條件的動物 🐶🐱')
+      return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
     const bubbles = filtered
@@ -111,7 +106,7 @@ export default async (event, type = null) => {
         try {
           return template(value)
         } catch (e) {
-          console.error('❌ Flex Bubble 產生錯誤：', e, value)
+          console.error('Flex Bubble 產生錯誤：', e, value)
           return null
         }
       })
@@ -131,6 +126,6 @@ export default async (event, type = null) => {
     })
   } catch (error) {
     console.error('commandAnimal 錯誤:', error)
-    await event.reply('發生錯誤，請稍後再試 🔧')
+    await event.reply('發生錯誤，請稍後再試')
   }
 }
