@@ -32,7 +32,7 @@ export default async (event, type = null) => {
 
     if (Array.isArray(type)) {
       console.log('篩選條件 (type array):', type)
-      const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
+      const [animalType, regionBig, city, age, bodytype, sex] = type
 
       console.log(
         '範例地址 list:',
@@ -57,20 +57,6 @@ export default async (event, type = null) => {
 
         const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
 
-        const vaccineMatch =
-          vaccine === '否'
-            ? item.animal_bacterin === 'F' || item.animal_bacterin === 'N'
-            : vaccine === '是'
-              ? item.animal_bacterin === 'T'
-              : true
-
-        const sterilizationMatch =
-          sterilization === '否'
-            ? item.animal_sterilization === 'F' || item.animal_sterilization === 'N'
-            : sterilization === '是'
-              ? item.animal_sterilization === 'T'
-              : true
-
         console.log(
           `item ${item.animal_id}:`,
           '品種:',
@@ -83,21 +69,9 @@ export default async (event, type = null) => {
           bodyMatch,
           '性別:',
           sexMatch,
-          '疫苗:',
-          vaccineMatch,
-          '絕育:',
-          sterilizationMatch,
         )
 
-        return (
-          kindMatch &&
-          cityMatch &&
-          ageMatch &&
-          bodyMatch &&
-          sexMatch &&
-          vaccineMatch &&
-          sterilizationMatch
-        )
+        return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
 
       console.log('篩選後筆數:', filtered.length)
