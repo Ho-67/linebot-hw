@@ -89,7 +89,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物年齡：',
       quickReply: {
-        items: ['未成年', '已成年'].map((age) => ({
+        items: ['未成年', '已成年', '待確認'].map((age) => ({
           type: 'action',
           action: {
             type: 'postback',
@@ -123,7 +123,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物性別：',
       quickReply: {
-        items: ['公', '母'].map((sex) => ({
+        items: ['公', '母', '待確認'].map((sex) => ({
           type: 'action',
           action: {
             type: 'postback',
