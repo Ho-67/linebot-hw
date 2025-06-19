@@ -4,8 +4,6 @@ import template from '../templates/animal.js'
 const ageMap = { ADULT: '已成年', CHILD: '未成年', N: '待確認' }
 const genderMap = { F: '母', M: '公', N: '待確認' }
 const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大', N: '待確認' }
-const vaccineMap = { 是: 'T', 否: 'F', 待確認: 'N' }
-const sterilizationMap = { 是: 'T', 否: 'F', 待確認: 'N' }
 
 // 洗牌函式
 function shuffleArray(array) {
@@ -55,11 +53,19 @@ export default async (event, type = null) => {
 
         const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
 
-        const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
+        const vaccineMatch =
+          vaccine === '否'
+            ? item.animal_bacterin === 'F' || item.animal_bacterin === 'N'
+            : vaccine === '是'
+              ? item.animal_bacterin === 'T'
+              : true
 
-        const sterilizationMatch = sterilization
-          ? item.animal_sterilization === sterilizationMap[sterilization]
-          : true
+        const sterilizationMatch =
+          sterilization === '否'
+            ? item.animal_sterilization === 'F' || item.animal_sterilization === 'N'
+            : sterilization === '是'
+              ? item.animal_sterilization === 'T'
+              : true
 
         console.log(
           `item ${item.animal_id}:`,
@@ -97,7 +103,9 @@ export default async (event, type = null) => {
       console.log('隨機抽取後筆數:', filtered.length)
     }
 
+    // 判斷 filtered 是否有資料
     if (filtered.length === 0) {
+      console.log('沒有符合的動物，原始條件如下：', { type })
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
