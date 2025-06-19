@@ -1,34 +1,18 @@
 import axios from 'axios'
-import { distance } from '../utils/distance.js'
 import template from '../templates/animal.js'
 
-const ageMap = {
-  ADULT: '已成年',
-  CHILD: '未成年',
+const ageMap = { ADULT: '已成年', CHILD: '未成年' }
+const genderMap = { F: '母', M: '公' }
+const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大' }
+const vaccineMap = { 是: 'T', 否: 'F' }
+const sterilizationMap = { 是: 'T', 否: 'F' }
+
+const safeText = (text) => {
+  const cleaned = String(text || '').trim()
+  return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
 }
 
-const genderMap = {
-  F: '母',
-  M: '公',
-}
-
-const bodyTypeMap = {
-  SMALL: '小',
-  MEDIUM: '中',
-  BIG: '大',
-}
-
-const vaccineMap = {
-  是: 'T',
-  否: 'F',
-}
-
-const sterilizationMap = {
-  是: 'T',
-  否: 'F',
-}
-
-// 洗牌函式，用來隨機打亂陣列順序
+// 洗牌函式
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -42,26 +26,23 @@ export default async (event, type = null) => {
     const { data } = await axios.get(
       'https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL&IsTransData=1',
     )
+    console.log('✅ 取得資料筆數:', data.length)
 
     let filtered = data
 
+    // 如果是位置訊息，提醒使用選單查詢
     if (event.message?.type === 'location') {
-      const userLat = event.message.latitude
-      const userLng = event.message.longitude
+      return await event.reply('📍 目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
+    }
 
-      filtered = data
-        .map((item) => {
-          const lat = Number(item.Latitude)
-          const lng = Number(item.Longitude)
-          item.distance = distance(lat, lng, userLat, userLng, 'K')
-          return item
-        })
-        .filter((item) => !isNaN(item.distance))
-
-      // 改成隨機抽5筆
-      filtered = shuffleArray(filtered).slice(0, 5)
-    } else if (Array.isArray(type)) {
+    if (Array.isArray(type)) {
+      console.log('🕵️ 篩選條件 (type array):', type)
       const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
+
+      console.log(
+        '📍 範例地址 list:',
+        data.slice(0, 5).map((i) => i.shelter_address),
+      )
 
       filtered = data.filter((item) => {
         const kindMatch =
@@ -72,13 +53,36 @@ export default async (event, type = null) => {
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
         const cityMatch = item.shelter_address?.includes(city)
-        const ageMatch = ageMap[item.animal_age] === age
-        const bodyMatch = bodyTypeMap[item.animal_bodytype] === bodytype
-        const sexMatch = genderMap[item.animal_sex] === sex
+
+        const ageMatch = age ? ageMap[item.animal_age] === age : true
+
+        const bodyMatch = bodytype ? bodyTypeMap[item.animal_bodytype] === bodytype : true
+
+        const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
+
         const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
+
         const sterilizationMatch = sterilization
           ? item.animal_sterilization === sterilizationMap[sterilization]
           : true
+
+        console.log(
+          `🧾 item ${item.animal_id}:`,
+          '種:',
+          kindMatch,
+          '市:',
+          cityMatch,
+          '年:',
+          ageMatch,
+          '體:',
+          bodyMatch,
+          '性:',
+          sexMatch,
+          '疫:',
+          vaccineMatch,
+          '絕:',
+          sterilizationMatch,
+        )
 
         return (
           kindMatch &&
@@ -91,12 +95,15 @@ export default async (event, type = null) => {
         )
       })
 
-      // 這裡改成隨機抽5筆
+      console.log('🔍 篩選後筆數:', filtered.length)
+
+      // 隨機抽五筆
       filtered = shuffleArray(filtered).slice(0, 5)
+      console.log('🎲 隨機抽取後筆數:', filtered.length)
     }
 
     if (filtered.length === 0) {
-      return await event.reply('抱歉，目前沒有找到符合條件的動物')
+      return await event.reply('抱歉，目前沒有找到符合條件的動物 🐶🐱')
     }
 
     const bubbles = filtered
@@ -104,14 +111,14 @@ export default async (event, type = null) => {
         try {
           return template(value)
         } catch (e) {
-          console.error('Flex Bubble 產生錯誤：', e, value)
+          console.error('❌ Flex Bubble 產生錯誤：', e, value)
           return null
         }
       })
       .filter(Boolean)
 
     if (bubbles.length === 0) {
-      return await event.reply('目前沒有可以顯示的動物資料')
+      return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
     }
 
     await event.reply({
@@ -124,6 +131,6 @@ export default async (event, type = null) => {
     })
   } catch (error) {
     console.error('commandAnimal 錯誤:', error)
-    await event.reply('發生錯誤，請稍後再試')
+    await event.reply('發生錯誤，請稍後再試 🔧')
   }
 }
