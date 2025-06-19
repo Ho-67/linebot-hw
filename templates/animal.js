@@ -31,7 +31,8 @@ export default (value) => {
   }
 
   const imageUrl =
-    safeText(value.album_file) || 'https://via.placeholder.com/1024x720?text=No+Image'
+    safeText(value.album_file) ||
+    'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png'
 
   return {
     type: 'bubble',
@@ -39,18 +40,21 @@ export default (value) => {
       type: 'image',
       url: imageUrl,
       size: 'full',
-      aspectRatio: '16:13',
+      aspectRatio: '5:3',
       aspectMode: 'cover',
       action: {
         type: 'uri',
-        label: '放大圖片',
-        uri: imageUrl,
+        uri: 'https://line.me/',
       },
     },
     body: {
       type: 'box',
       layout: 'vertical',
       spacing: 'md',
+      action: {
+        type: 'uri',
+        uri: 'https://line.me/',
+      },
       contents: [
         {
           type: 'text',
@@ -58,6 +62,7 @@ export default (value) => {
           size: 'md',
           weight: 'bold',
           align: 'center',
+          wrap: true,
         },
         {
           type: 'box',
@@ -71,14 +76,16 @@ export default (value) => {
                 {
                   type: 'text',
                   text: `品種：${safeText(value.animal_Variety)}`,
-                  size: 'sm',
+                  weight: 'bold',
                   flex: 0,
+                  size: 'sm',
                 },
                 {
                   type: 'text',
                   text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age)}`,
                   size: 'sm',
                   align: 'end',
+                  weight: 'bold',
                 },
               ],
             },
@@ -89,14 +96,16 @@ export default (value) => {
                 {
                   type: 'text',
                   text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype)}`,
-                  size: 'sm',
+                  weight: 'bold',
                   flex: 0,
+                  size: 'sm',
                 },
                 {
                   type: 'text',
                   text: `性別：${genderMap[value.animal_sex] || safeText(value.animal_sex)}`,
                   size: 'sm',
                   align: 'end',
+                  weight: 'bold',
                 },
               ],
             },
@@ -107,13 +116,15 @@ export default (value) => {
                 {
                   type: 'text',
                   text: `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || safeText(value.animal_bacterin)}`,
-                  size: 'sm',
                   flex: 0,
+                  weight: 'bold',
+                  size: 'sm',
                 },
                 {
                   type: 'text',
                   text: `絕育：${sterilizationMap[value.animal_sterilization] || safeText(value.animal_sterilization)}`,
                   size: 'sm',
+                  weight: 'bold',
                   align: 'end',
                 },
               ],
@@ -124,11 +135,13 @@ export default (value) => {
           type: 'text',
           text: `備註：${safeText(value.animal_remark)}`,
           wrap: true,
-          color: '#aaaaaa',
-          size: 'xs',
-          margin: 'md',
+          color: '#999999',
+          size: 'sm',
+          maxLines: 4,
+          scaling: true,
         },
       ],
+      backgroundColor: '#f5f7e9',
     },
     footer: {
       type: 'box',
@@ -136,44 +149,51 @@ export default (value) => {
       contents: [
         {
           type: 'separator',
+          margin: 'xs',
         },
         {
-          type: 'box',
-          layout: 'vertical',
-          spacing: 'sm',
-          contents: [
-            {
-              type: 'text',
-              text: safeText(value.shelter_name),
-              align: 'center',
-              weight: 'bold',
-              size: 'md',
-            },
-            {
-              type: 'text',
-              text: safeText(value.shelter_address),
-              wrap: true,
-              size: 'sm',
-              align: 'center',
-            },
-            {
-              type: 'text',
-              text: `電話：${safeText(value.shelter_tel)}`,
-              wrap: true,
-              size: 'sm',
-              align: 'center',
-            },
-            {
-              type: 'button',
-              action: {
-                type: 'uri',
-                label: 'Google地圖',
-                uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
-              },
-            },
-          ],
+          type: 'text',
+          text: safeText(value.shelter_name),
+          size: 'md',
+          weight: 'bold',
+          align: 'center',
+          wrap: true,
+          offsetTop: 'md',
+          adjustMode: 'shrink-to-fit',
+          margin: 'xs',
+        },
+        {
+          type: 'text',
+          text: safeText(value.shelter_address),
+          align: 'center',
+          offsetTop: 'md',
+          size: 'sm',
+          wrap: true,
+          maxLines: 3,
+          margin: 'xs',
+        },
+        {
+          type: 'text',
+          text: `電話：${safeText(value.shelter_tel)}`,
+          size: 'sm',
+          align: 'center',
+          offsetTop: 'sm',
+          adjustMode: 'shrink-to-fit',
+          margin: 'xs',
+        },
+        {
+          type: 'button',
+          style: 'link',
+          margin: 'xs',
+          action: {
+            type: 'uri',
+            uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
+            label: 'value.shelter_address',
+          },
+          color: '#0b748a',
         },
       ],
+      backgroundColor: '#f5f7e9',
     },
   }
 }
