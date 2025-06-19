@@ -4,6 +4,8 @@ import commandAnimal from './animal.js'
 export default async function adopt(event, isFirstTime = false) {
   const data = event.postback?.data
 
+  console.log('[adoptQR] 收到 postback data:', data)
+
   // 初次進入：輸入「認領養」時，顯示第一層
   if (isFirstTime || !data) {
     await event.reply({
@@ -26,6 +28,7 @@ export default async function adopt(event, isFirstTime = false) {
 
   // 非第一次進入時，依照層級進行處理
   const parts = data.split('|')
+  console.log('[adoptQR] 解析後 parts:', parts)
 
   if (parts.length === 1) {
     const [animalType] = parts
@@ -89,7 +92,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物年齡：',
       quickReply: {
-        items: ['未成年', '已成年', '待確認'].map((age) => ({
+        items: ['未成年', '已成年'].map((age) => ({
           type: 'action',
           action: {
             type: 'postback',
@@ -106,7 +109,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物體型：',
       quickReply: {
-        items: ['大', '中', '小', '待確認'].map((bodytype) => ({
+        items: ['大', '中', '小'].map((bodytype) => ({
           type: 'action',
           action: {
             type: 'postback',
@@ -123,7 +126,7 @@ export default async function adopt(event, isFirstTime = false) {
       type: 'text',
       text: '請選擇動物性別：',
       quickReply: {
-        items: ['公', '母', '待確認'].map((sex) => ({
+        items: ['公', '母'].map((sex) => ({
           type: 'action',
           action: {
             type: 'postback',
@@ -135,6 +138,7 @@ export default async function adopt(event, isFirstTime = false) {
       },
     })
   } else if (parts.length === 6) {
+    console.log('[adoptQR] 條件齊全，呼叫 commandAnimal')
     await commandAnimal(event, parts) // 正確帶入 6 個條件參數
   } else {
     await event.reply('無效的選擇，請重新開始。')

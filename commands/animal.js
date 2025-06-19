@@ -1,9 +1,9 @@
 import axios from 'axios'
 import template from '../templates/animal.js'
 
-const ageMap = { ADULT: '已成年', CHILD: '未成年', N: '待確認' }
-const genderMap = { F: '母', M: '公', N: '待確認' }
-const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大', N: '待確認' }
+const ageMap = { ADULT: '已成年', CHILD: '未成年' }
+const genderMap = { F: '母', M: '公' }
+const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大' }
 const vaccineMap = { 是: 'T', 否: 'F' }
 const sterilizationMap = { 是: 'T', 否: 'F' }
 
@@ -21,22 +21,18 @@ export default async (event, type = null) => {
     const { data } = await axios.get(
       'https://data.moa.gov.tw/Service/OpenData/TransService.aspx?UnitId=QcbUEzN6E6DL&IsTransData=1',
     )
-    console.log('取得資料筆數:', data.length)
+    console.log('[commandAnimal] 取得資料筆數:', data.length)
 
     let filtered = data
 
+    // 如果是位置訊息，提醒使用選單查詢
     if (event.message?.type === 'location') {
       return await event.reply('目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
     }
 
     if (Array.isArray(type)) {
-      console.log('篩選條件 (type array):', type)
-      const [animalType, regionBig, city, age, bodytype, sex, vaccine, sterilization] = type
-
-      console.log(
-        '範例地址 list:',
-        data.slice(0, 5).map((i) => i.shelter_address),
-      )
+      console.log('[commandAnimal] 篩選條件 (type array):', type)
+      const [animalType, regionBig, city, age, bodytype, sex] = type
 
       filtered = data.filter((item) => {
         const kindMatch =
@@ -48,53 +44,24 @@ export default async (event, type = null) => {
 
         const cityMatch = item.shelter_address?.includes(city)
 
-        const ageMatch = age && age !== '待確認' ? ageMap[item.animal_age] === age : true
+        const ageMatch = age ? ageMap[item.animal_age] === age : true
 
-        const bodyMatch =
-          bodytype && bodytype !== '待確認' ? bodyTypeMap[item.animal_bodytype] === bodytype : true
+        const bodyMatch = bodytype ? bodyTypeMap[item.animal_bodytype] === bodytype : true
 
-        const sexMatch = sex && sex !== '待確認' ? genderMap[item.animal_sex] === sex : true
-
-        const vaccineMatch = vaccine ? item.animal_bacterin === vaccineMap[vaccine] : true
-
-        const sterilizationMatch = sterilization
-          ? item.animal_sterilization === sterilizationMap[sterilization]
-          : true
+        const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
 
         console.log(
-          `item ${item.animal_id}:`,
-          '品種:',
-          kindMatch,
-          '縣市:',
-          cityMatch,
-          '年齡:',
-          ageMatch,
-          '體型:',
-          bodyMatch,
-          '性別:',
-          sexMatch,
-          '疫苗:',
-          vaccineMatch,
-          '絕育:',
-          sterilizationMatch,
+          `[commandAnimal] item ${item.animal_id}: 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
         )
 
-        return (
-          kindMatch &&
-          cityMatch &&
-          ageMatch &&
-          bodyMatch &&
-          sexMatch &&
-          vaccineMatch &&
-          sterilizationMatch
-        )
+        return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
 
-      console.log('篩選後筆數:', filtered.length)
+      console.log('[commandAnimal] 篩選後筆數:', filtered.length)
 
       // 隨機抽五筆
       filtered = shuffleArray(filtered).slice(0, 5)
-      console.log('隨機抽取後筆數:', filtered.length)
+      console.log('[commandAnimal] 隨機抽取後筆數:', filtered.length)
     }
 
     if (filtered.length === 0) {
@@ -106,7 +73,7 @@ export default async (event, type = null) => {
         try {
           return template(value)
         } catch (e) {
-          console.error('Flex Bubble 產生錯誤：', e, value)
+          console.error('[commandAnimal] Flex Bubble 產生錯誤：', e, value)
           return null
         }
       })
@@ -115,6 +82,8 @@ export default async (event, type = null) => {
     if (bubbles.length === 0) {
       return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
     }
+
+    console.log('[commandAnimal] Flex bubbles 數量:', bubbles.length)
 
     await event.reply({
       type: 'flex',
@@ -125,7 +94,7 @@ export default async (event, type = null) => {
       },
     })
   } catch (error) {
-    console.error('commandAnimal 錯誤:', error)
+    console.error('[commandAnimal] 錯誤:', error)
     await event.reply('發生錯誤，請稍後再試')
   }
 }
