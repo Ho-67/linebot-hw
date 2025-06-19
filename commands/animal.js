@@ -48,7 +48,9 @@ export default async (event, type = null) => {
 
         const bodyMatch = bodytype ? bodyTypeMap[item.animal_bodytype] === bodytype : true
 
-        const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
+        const sexMatch = sex
+          ? (sex === '公' && item.animal_sex === 'M') || (sex === '母' && item.animal_sex === 'F')
+          : true
 
         console.log(
           `[commandAnimal] item ${item.animal_id}: 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
