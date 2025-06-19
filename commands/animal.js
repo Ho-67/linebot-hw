@@ -4,8 +4,6 @@ import template from '../templates/animal.js'
 const ageMap = { ADULT: '已成年', CHILD: '未成年', N: '待確認' }
 const genderMap = { F: '母', M: '公', N: '待確認' }
 const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大', N: '待確認' }
-const vaccineMap = { 是: 'T', 否: 'F', 待確認: 'N' }
-const sterilizationMap = { 是: 'T', 否: 'F', 待確認: 'N' }
 
 // 洗牌函式
 function shuffleArray(array) {
@@ -14,6 +12,12 @@ function shuffleArray(array) {
     ;[array[i], array[j]] = [array[j], array[i]]
   }
   return array
+}
+
+// 保護 map lookup 的函式
+const safeValue = (map, key) => {
+  if (!key || typeof key !== 'string') return '待確認'
+  return map[key.trim()] || '待確認'
 }
 
 export default async (event, type = null) => {
@@ -48,28 +52,16 @@ export default async (event, type = null) => {
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
         const cityMatch = city
-          ? item.shelter_address.includes(city)
-          : item.shelter_address.includes(regionBig)
+          ? item.shelter_address?.includes(city)
+          : item.shelter_address?.includes(regionBig)
 
-        const ageMatch = age ? ageMap[item.animal_age] === age : true
+        const ageMatch = age ? safeValue(ageMap, item.animal_age) === age : true
 
-        const bodyMatch = bodytype ? bodyTypeMap[item.animal_bodytype] === bodytype : true
+        const bodyMatch = bodytype
+          ? safeValue(bodyTypeMap, item.animal_bodytype) === bodytype
+          : true
 
-        const sexMatch = sex ? genderMap[item.animal_sex] === sex : true
-
-        console.log(
-          `item ${item.animal_id}:`,
-          '品種:',
-          kindMatch,
-          '縣市:',
-          cityMatch,
-          '年齡:',
-          ageMatch,
-          '體型:',
-          bodyMatch,
-          '性別:',
-          sexMatch,
-        )
+        const sexMatch = sex ? safeValue(genderMap, item.animal_sex) === sex : true
 
         return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
@@ -81,7 +73,6 @@ export default async (event, type = null) => {
       console.log('隨機抽取後筆數:', filtered.length)
     }
 
-    // 判斷 filtered 是否有資料
     if (filtered.length === 0) {
       console.log('沒有符合的動物，原始條件如下：', { type })
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
@@ -92,7 +83,7 @@ export default async (event, type = null) => {
         try {
           return template(value)
         } catch (e) {
-          console.error('Flex Bubble 產生錯誤：', e, value)
+          console.error('Flex Bubble 產生錯誤：', e.message, value)
           return null
         }
       })
