@@ -4,6 +4,8 @@ import template from '../templates/animal.js'
 const ageMap = { ADULT: '已成年', CHILD: '未成年', N: '待確認' }
 const genderMap = { F: '母', M: '公', N: '待確認' }
 const bodyTypeMap = { SMALL: '小', MEDIUM: '中', BIG: '大', N: '待確認' }
+const vaccineMap = { 是: 'T', 否: 'F', 待確認: 'N' }
+const sterilizationMap = { 是: 'T', 否: 'F', 待確認: 'N' }
 
 // 洗牌函式
 function shuffleArray(array) {
@@ -38,14 +40,10 @@ export default async (event, type = null) => {
       )
 
       filtered = data.filter((item) => {
-        const kindMatch =
-          animalType === '狗'
-            ? item.animal_kind === '狗'
-            : animalType === '貓'
-              ? item.animal_kind === '貓'
-              : item.animal_kind !== '狗' && item.animal_kind !== '貓'
-
-        const cityMatch = item.shelter_address?.includes(city)
+        let kindMatch = true
+        if (animalType === '狗') kindMatch = item.animal_kind === '狗'
+        else if (animalType === '貓') kindMatch = item.animal_kind === '貓'
+        const cityMatch = city ? item.shelter_address?.includes(city) : true
 
         const ageMatch = age ? ageMap[item.animal_age] === age : true
 
