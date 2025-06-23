@@ -11,7 +11,7 @@ function mapOrPending(value, map) {
   return map[value] || '待確認'
 }
 
-// 新增 normalizeCity 函式
+// 標準化（normalize）地址文字
 function normalizeCity(str) {
   return (str || '').replace(/[縣市鄉鎮區]/g, '')
 }
