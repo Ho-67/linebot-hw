@@ -107,14 +107,19 @@ export default async (event, type = null) => {
 
     console.log('[commandAnimal] Flex bubbles 數量:', bubbles.length)
 
-    await event.reply({
-      type: 'flex',
-      altText: '認領養動物列表',
-      contents: {
-        type: 'carousel',
-        contents: bubbles,
-      },
-    })
+    try {
+      await event.reply({
+        type: 'flex',
+        altText: '認領養動物列表',
+        contents: {
+          type: 'carousel',
+          contents: bubbles,
+        },
+      })
+    } catch (e) {
+      console.error('[commandAnimal] 回覆失敗:', e)
+      await event.reply('Flex 回覆失敗，可能是資料格式錯誤或太大。')
+    }
   } catch (error) {
     console.error('[commandAnimal] 錯誤:', error)
     await event.reply('發生錯誤，請稍後再試')
