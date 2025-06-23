@@ -32,7 +32,7 @@ export default async (event, type = null) => {
 
     if (Array.isArray(type)) {
       console.log('[commandAnimal] 篩選條件 (type array):', type)
-      const [animalType, regionBig, city, age, bodytype, sex] = type
+      const [animalType, , city, age, bodytype, sex] = type // regionBig 移除不用
 
       filtered = data.filter((item) => {
         const kindMatch =
@@ -42,10 +42,7 @@ export default async (event, type = null) => {
               ? item.animal_kind === '貓'
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-        const cityMatch =
-          regionBig || city
-            ? item.shelter_address?.includes(regionBig) || item.shelter_address?.includes(city)
-            : true
+        const cityMatch = city ? item.shelter_address?.includes(city) : true
 
         const ageMatch = age ? !ageMap[item.animal_age] || ageMap[item.animal_age] === age : true
 
@@ -58,7 +55,7 @@ export default async (event, type = null) => {
           : true
 
         console.log(
-          `[commandAnimal] item ${item.animal_id}: 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
+          `[commandAnimal] item ${item.animal_id}: 地址=${item.shelter_address}, 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
         )
 
         return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch

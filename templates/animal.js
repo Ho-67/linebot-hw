@@ -83,7 +83,7 @@ export default (value) => {
                   },
                   {
                     type: 'text',
-                    text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype) || '待確認'}`,
+                    text: `體型：${bodyTypeMap[value.animal_bodytype] || '待確認'}`,
                     size: 'sm',
                     align: 'end',
                     weight: 'bold',
@@ -96,14 +96,14 @@ export default (value) => {
                 contents: [
                   {
                     type: 'text',
-                    text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age) || '待確認'}`,
+                    text: `年齡：${ageMap[value.animal_age] || '待確認'}`,
                     weight: 'bold',
                     flex: 0,
                     size: 'sm',
                   },
                   {
                     type: 'text',
-                    text: `性別：${genderMap[value.animal_sex] || safeText(value.animal_sex) || '待確認'}`,
+                    text: `性別：${genderMap[value.animal_sex] || '待確認'}`,
                     size: 'sm',
                     align: 'end',
                     weight: 'bold',
@@ -116,14 +116,14 @@ export default (value) => {
                 contents: [
                   {
                     type: 'text',
-                    text: `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || safeText(value.animal_bacterin) || '待確認'}`,
+                    text: `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || '待確認'}`,
                     flex: 0,
                     weight: 'bold',
                     size: 'sm',
                   },
                   {
                     type: 'text',
-                    text: `絕育：${sterilizationMap[value.animal_sterilization] || safeText(value.animal_sterilization) || '待確認'}`,
+                    text: `絕育：${sterilizationMap[value.animal_sterilization] || '待確認'}`,
                     size: 'sm',
                     weight: 'bold',
                     align: 'end',
