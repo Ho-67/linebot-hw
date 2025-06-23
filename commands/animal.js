@@ -48,8 +48,7 @@ export default async (event, type = null) => {
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
         // 判斷縣市
-        const cleanAddress = item.shelter_address?.replace(/[(（][^()（）]*[)）]/g, '')
-        const cityMatch = city ? cleanAddress.includes(city) : true
+        const cityMatch = city ? item.shelter_address?.includes(city) : true
 
         // 年齡映射 + 比對（包含 N 代號）
         const ageLabel = mapOrPending(item.animal_age, ageMap)
@@ -63,15 +62,15 @@ export default async (event, type = null) => {
         const sexLabel = mapOrPending(item.animal_sex, genderMap)
         const sexMatch = sex ? sexLabel === sex : true
 
-        console.log(`
-          [commandAnimal] item ${item.animal_id}
-          地址=${item.shelter_address}
-          品種 原始: ${item.animal_kind} → 比對結果: ${kindMatch}
-          縣市 是否包含 '${city}': ${cityMatch}
-          年齡 原始: ${item.animal_age} → 映射: ${ageLabel} → 比對結果: ${ageMatch}
-          體型 原始: ${item.animal_bodytype} → 映射: ${bodyLabel} → 比對結果: ${bodyMatch}
-          性別 原始: ${item.animal_sex} → 映射: ${sexLabel} → 比對結果: ${sexMatch}
-        `)
+        // console.log(`
+        //   [commandAnimal] item ${item.animal_id}
+        //   地址=${item.shelter_address}
+        //   品種 原始: ${item.animal_kind} → 比對結果: ${kindMatch}
+        //   縣市 是否包含 '${city}': ${cityMatch}
+        //   年齡 原始: ${item.animal_age} → 映射: ${ageLabel} → 比對結果: ${ageMatch}
+        //   體型 原始: ${item.animal_bodytype} → 映射: ${bodyLabel} → 比對結果: ${bodyMatch}
+        //   性別 原始: ${item.animal_sex} → 映射: ${sexLabel} → 比對結果: ${sexMatch}
+        // `)
 
         return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
