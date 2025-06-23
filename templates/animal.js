@@ -52,10 +52,10 @@ export default (value) => {
         type: 'box',
         layout: 'vertical',
         spacing: 'md',
-        action: {
-          type: 'uri',
-          uri: 'https://line.me/',
-        },
+        // action: {
+        //   type: 'uri',
+        //   uri: 'https://line.me/',
+        // },
         contents: [
           {
             type: 'text',
@@ -175,7 +175,7 @@ export default (value) => {
             margin: 'xs',
             action: {
               type: 'uri',
-              uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(value.shelter_address))}`,
+              uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
               label: safeText(value.shelter_address),
             },
             color: '#0b748a',
