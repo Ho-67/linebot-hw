@@ -3,32 +3,27 @@ export default (value) => {
     const ageMap = {
       ADULT: '已成年',
       CHILD: '未成年',
-      N: '待確認',
     }
 
     const genderMap = {
       F: '母',
       M: '公',
-      N: '待確認',
     }
 
     const bodyTypeMap = {
       SMALL: '小',
       MEDIUM: '中',
       BIG: '大',
-      N: '待確認',
     }
 
     const vaccineMap = {
       T: '是',
       F: '否',
-      N: '待確認',
     }
 
     const sterilizationMap = {
       T: '是',
       F: '否',
-      N: '待確認',
     }
 
     const safeText = (text) => {
@@ -81,14 +76,14 @@ export default (value) => {
                 contents: [
                   {
                     type: 'text',
-                    text: `品種：${safeText(value.animal_Variety)}`,
+                    text: `品種：${safeText(value.animal_Variety) || '待確認'}`,
                     weight: 'bold',
                     flex: 0,
                     size: 'sm',
                   },
                   {
                     type: 'text',
-                    text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype)}`,
+                    text: `體型：${bodyTypeMap[value.animal_bodytype] || safeText(value.animal_bodytype) || '待確認'}`,
                     size: 'sm',
                     align: 'end',
                     weight: 'bold',
@@ -101,14 +96,14 @@ export default (value) => {
                 contents: [
                   {
                     type: 'text',
-                    text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age)}`,
+                    text: `年齡：${ageMap[value.animal_age] || safeText(value.animal_age) || '待確認'}`,
                     weight: 'bold',
                     flex: 0,
                     size: 'sm',
                   },
                   {
                     type: 'text',
-                    text: `性別：${genderMap[value.animal_sex] || safeText(value.animal_sex)}`,
+                    text: `性別：${genderMap[value.animal_sex] || safeText(value.animal_sex) || '待確認'}`,
                     size: 'sm',
                     align: 'end',
                     weight: 'bold',
@@ -121,14 +116,14 @@ export default (value) => {
                 contents: [
                   {
                     type: 'text',
-                    text: `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || safeText(value.animal_bacterin)}`,
+                    text: `施打狂犬疫苗：${vaccineMap[value.animal_bacterin] || safeText(value.animal_bacterin) || '待確認'}`,
                     flex: 0,
                     weight: 'bold',
                     size: 'sm',
                   },
                   {
                     type: 'text',
-                    text: `絕育：${sterilizationMap[value.animal_sterilization] || safeText(value.animal_sterilization)}`,
+                    text: `絕育：${sterilizationMap[value.animal_sterilization] || safeText(value.animal_sterilization) || '待確認'}`,
                     size: 'sm',
                     weight: 'bold',
                     align: 'end',

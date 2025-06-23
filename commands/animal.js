@@ -47,13 +47,15 @@ export default async (event, type = null) => {
             ? item.shelter_address?.includes(regionBig) || item.shelter_address?.includes(city)
             : true
 
-        const ageMatch = age ? ageMap[item.animal_age] === age : true
+        // 只有當 item.animal_age 有對應 ageMap，才允許比對；否則略過這條件
+        const ageLabel = ageMap[item.animal_age]
+        const ageMatch = age ? ageLabel === age : true
 
-        const bodyMatch = bodytype ? bodyTypeMap[item.animal_bodytype] === bodytype : true
+        const bodyLabel = bodyTypeMap[item.animal_bodytype]
+        const bodyMatch = bodytype ? bodyLabel === bodytype : true
 
-        const sexMatch = sex
-          ? (sex === '公' && item.animal_sex === 'M') || (sex === '母' && item.animal_sex === 'F')
-          : true
+        const sexLabel = genderMap[item.animal_sex]
+        const sexMatch = sex ? sexLabel === sex : true
 
         console.log(
           `[commandAnimal] item ${item.animal_id}: 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
@@ -76,21 +78,6 @@ export default async (event, type = null) => {
     const bubbles = filtered
       .map((value) => {
         try {
-          // 處理疫苗與結紮欄位轉換
-          value.sterilizationText =
-            value.animal_sterilization === 'Y'
-              ? '已結紮'
-              : value.animal_sterilization === 'N'
-                ? '未結紮'
-                : '不明'
-
-          value.bacterinText =
-            value.animal_bacterin === 'Y'
-              ? '已施打疫苗'
-              : value.animal_bacterin === 'N'
-                ? '未施打疫苗'
-                : '不明'
-
           return template(value)
         } catch (e) {
           console.error('[commandAnimal] Flex Bubble 產生錯誤：', e, value)
