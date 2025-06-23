@@ -49,7 +49,7 @@ export default async (event, type = null) => {
 
         // 判斷縣市
         const cityMatch = city ? item.shelter_address?.includes(city) : true
-        console.log(cityMatch)
+        // console.log('aaaaaaaaaaaaaaaaaaaaaaaaa', cityMatch)
         // 年齡映射 + 比對（包含 N 代號）
         const ageLabel = mapOrPending(item.animal_age, ageMap)
         const ageMatch = age ? ageLabel === age : true
