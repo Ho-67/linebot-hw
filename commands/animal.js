@@ -86,7 +86,7 @@ export default async (event, type = null) => {
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    console.log(filtered)
+    // console.log(filtered)
     const bubbles = filtered
       .map((value) => {
         try {
@@ -98,6 +98,7 @@ export default async (event, type = null) => {
       })
       .filter(Boolean)
 
+    console.log(bubbles)
     if (bubbles.length === 0) {
       return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
     } else if (bubbles.length > 0) {
