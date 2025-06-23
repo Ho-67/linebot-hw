@@ -47,15 +47,15 @@ export default async (event, type = null) => {
             ? item.shelter_address?.includes(regionBig) || item.shelter_address?.includes(city)
             : true
 
-        // 只有當 item.animal_age 有對應 ageMap，才允許比對；否則略過這條件
-        const ageLabel = ageMap[item.animal_age]
-        const ageMatch = age ? ageLabel === age : true
+        const ageMatch = age ? !ageMap[item.animal_age] || ageMap[item.animal_age] === age : true
 
-        const bodyLabel = bodyTypeMap[item.animal_bodytype]
-        const bodyMatch = bodytype ? bodyLabel === bodytype : true
+        const bodyMatch = bodytype
+          ? !bodyTypeMap[item.animal_bodytype] || bodyTypeMap[item.animal_bodytype] === bodytype
+          : true
 
-        const sexLabel = genderMap[item.animal_sex]
-        const sexMatch = sex ? sexLabel === sex : true
+        const sexMatch = sex
+          ? !genderMap[item.animal_sex] || genderMap[item.animal_sex] === sex
+          : true
 
         console.log(
           `[commandAnimal] item ${item.animal_id}: 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
