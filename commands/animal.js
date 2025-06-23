@@ -53,9 +53,15 @@ export default async (event, type = null) => {
         const sexLabel = genderMap[item.animal_sex]
         const sexMatch = sex ? (sexLabel ? sexLabel === sex : true) : true
 
-        console.log(
-          `[commandAnimal] item ${item.animal_id}: 地址=${item.shelter_address}, 品種=${kindMatch}, 縣市=${cityMatch}, 年齡=${ageMatch}, 體型=${bodyMatch}, 性別=${sexMatch}`,
-        )
+        console.log(`
+          [commandAnimal] item ${item.animal_id}
+          地址=${item.shelter_address}
+          品種 原始: ${item.animal_kind} → 比對結果: ${kindMatch}
+          縣市 是否包含 '${city}': ${cityMatch}
+          年齡 原始: ${item.animal_age} → 映射: ${ageLabel} → 比對結果: ${ageMatch}
+          體型 原始: ${item.animal_bodytype} → 映射: ${bodyLabel} → 比對結果: ${bodyMatch}
+          性別 原始: ${item.animal_sex} → 映射: ${sexLabel} → 比對結果: ${sexMatch}
+          `)
 
         return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
