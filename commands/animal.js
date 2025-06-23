@@ -98,7 +98,7 @@ export default async (event, type = null) => {
       })
       .filter(Boolean)
 
-    console.log(bubbles)
+    console.log('XXXXXXXXXXXXXXXXXXXXXXXX', bubbles)
     if (bubbles.length === 0) {
       return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
     } else if (bubbles.length > 0) {
