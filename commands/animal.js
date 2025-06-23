@@ -11,6 +11,11 @@ function mapOrPending(value, map) {
   return map[value] || '待確認'
 }
 
+// 新增 normalizeCity 函式
+function normalizeCity(str) {
+  return (str || '').replace(/[縣市鄉鎮區]/g, '')
+}
+
 // 洗牌函式
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -35,11 +40,10 @@ export default async (event, type = null) => {
     }
 
     if (Array.isArray(type)) {
-      console.log('[commandAnimal] 篩選條件 (type array):', type)
-      const [animalType, , city, age, bodytype, sex] = type // regionBig 不用
+      const [animalType, , city, age, bodytype, sex] = type
 
       filtered = data.filter((item) => {
-        // 判斷品種
+        // 品種判斷維持不變
         const kindMatch =
           animalType === '狗'
             ? item.animal_kind === '狗'
@@ -47,30 +51,30 @@ export default async (event, type = null) => {
               ? item.animal_kind === '貓'
               : item.animal_kind !== '狗' && item.animal_kind !== '貓'
 
-        // 判斷縣市
-        const cityMatch = city ? item.shelter_address?.includes(city) : true
+        // 改成正規化比對地址（cityMatch）
+        const cityNorm = normalizeCity(city)
+        const addrNorm = normalizeCity(item.shelter_address)
+        const cityMatch = city ? addrNorm.includes(cityNorm) : true
 
-        // 年齡映射 + 比對（包含 N 代號）
         const ageLabel = mapOrPending(item.animal_age, ageMap)
         const ageMatch = age ? ageLabel === age : true
 
-        // 體型映射 + 比對
         const bodyLabel = mapOrPending(item.animal_bodytype, bodyTypeMap)
         const bodyMatch = bodytype ? bodyLabel === bodytype : true
 
-        // 性別映射 + 比對
         const sexLabel = mapOrPending(item.animal_sex, genderMap)
         const sexMatch = sex ? sexLabel === sex : true
 
+        // 印出 normalized 值方便確認
         console.log(`
-          [commandAnimal] item ${item.animal_id}
-          地址=${item.shelter_address}
-          品種 原始: ${item.animal_kind} → 比對結果: ${kindMatch}
-          縣市 是否包含 '${city}': ${cityMatch}
-          年齡 原始: ${item.animal_age} → 映射: ${ageLabel} → 比對結果: ${ageMatch}
-          體型 原始: ${item.animal_bodytype} → 映射: ${bodyLabel} → 比對結果: ${bodyMatch}
-          性別 原始: ${item.animal_sex} → 映射: ${sexLabel} → 比對結果: ${sexMatch}
-        `)
+      [commandAnimal] item ${item.animal_id}
+      地址 原始: ${item.shelter_address}
+      地址 Normalize 比對: '${addrNorm}' 包含 '${cityNorm}': ${cityMatch}
+      品種 原始: ${item.animal_kind} → 比對結果: ${kindMatch}
+      年齡 原始: ${item.animal_age} → 映射: ${ageLabel} → 比對結果: ${ageMatch}
+      體型 原始: ${item.animal_bodytype} → 映射: ${bodyLabel} → 比對結果: ${bodyMatch}
+      性別 原始: ${item.animal_sex} → 映射: ${sexLabel} → 比對結果: ${sexMatch}
+    `)
 
         return kindMatch && cityMatch && ageMatch && bodyMatch && sexMatch
       })
