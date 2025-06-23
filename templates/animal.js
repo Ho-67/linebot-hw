@@ -31,9 +31,18 @@ export default (value) => {
       return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
     }
 
-    const imageUrl =
-      safeText(value.album_file) ||
-      'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png'
+    const truncate = (text, max = 40) =>
+      String(text || '')
+        .replace(/\n/g, ' ')
+        .slice(0, max)
+
+    const isValidImageUrl = (url) => {
+      return typeof url === 'string' && /^https:\/\/.+\.(jpg|jpeg|png)$/i.test(url)
+    }
+
+    const imageUrl = isValidImageUrl(value.album_file)
+      ? value.album_file
+      : 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png'
 
     return {
       type: 'bubble',
@@ -134,7 +143,7 @@ export default (value) => {
           },
           {
             type: 'text',
-            text: `備註：${safeText(value.animal_remark)}`,
+            text: `備註：${truncate(safeText(value.animal_remark), 60)}`,
             wrap: true,
             color: '#999999',
             size: 'sm',
@@ -176,7 +185,7 @@ export default (value) => {
             action: {
               type: 'uri',
               uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
-              label: safeText(value.shelter_address),
+              label: truncate(safeText(value.shelter_address), 40),
             },
             color: '#0b748a',
           },
