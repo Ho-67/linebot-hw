@@ -175,7 +175,7 @@ export default (value) => {
             margin: 'xs',
             action: {
               type: 'uri',
-              uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
+              uri: `http://maps.google.com/?q=${encodeURIComponent(value.shelter_address)}`,
               label: safeText(value.shelter_address),
             },
             color: '#0b748a',
