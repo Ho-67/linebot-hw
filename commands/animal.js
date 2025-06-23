@@ -76,6 +76,21 @@ export default async (event, type = null) => {
     const bubbles = filtered
       .map((value) => {
         try {
+          // 處理疫苗與結紮欄位轉換
+          value.sterilizationText =
+            value.animal_sterilization === 'Y'
+              ? '已結紮'
+              : value.animal_sterilization === 'N'
+                ? '未結紮'
+                : '不明'
+
+          value.bacterinText =
+            value.animal_bacterin === 'Y'
+              ? '已施打疫苗'
+              : value.animal_bacterin === 'N'
+                ? '未施打疫苗'
+                : '不明'
+
           return template(value)
         } catch (e) {
           console.error('[commandAnimal] Flex Bubble 產生錯誤：', e, value)
