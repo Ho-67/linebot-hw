@@ -49,7 +49,7 @@ export default async (event, type = null) => {
 
         // 判斷縣市
         const cityMatch = city ? item.shelter_address?.includes(city) : true
-
+        console.log(cityMatch)
         // 年齡映射 + 比對（包含 N 代號）
         const ageLabel = mapOrPending(item.animal_age, ageMap)
         const ageMatch = age ? ageLabel === age : true
@@ -61,6 +61,8 @@ export default async (event, type = null) => {
         // 性別映射 + 比對
         const sexLabel = mapOrPending(item.animal_sex, genderMap)
         const sexMatch = sex ? sexLabel === sex : true
+
+        console.log(ageLabel, ageMatch, bodyLabel, sexLabel, sexMatch)
 
         // console.log(`
         //   [commandAnimal] item ${item.animal_id}
