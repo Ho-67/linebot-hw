@@ -62,8 +62,6 @@ export default async (event, type = null) => {
         const sexLabel = mapOrPending(item.animal_sex, genderMap)
         const sexMatch = sex ? sexLabel === sex : true
 
-        console.log(ageLabel, ageMatch, bodyLabel, sexLabel, sexMatch)
-
         // console.log(`
         //   [commandAnimal] item ${item.animal_id}
         //   地址=${item.shelter_address}
@@ -88,6 +86,7 @@ export default async (event, type = null) => {
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
+    console.log(filtered)
     const bubbles = filtered
       .map((value) => {
         try {
