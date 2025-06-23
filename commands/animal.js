@@ -99,6 +99,8 @@ export default async (event, type = null) => {
 
     if (bubbles.length === 0) {
       return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
+    } else if (bubbles.length > 0) {
+      console.log('[commandAnimal] 第一個 Flex Bubble 內容:', JSON.stringify(bubbles[0], null, 2))
     }
 
     console.log('[commandAnimal] Flex bubbles 數量:', bubbles.length)
