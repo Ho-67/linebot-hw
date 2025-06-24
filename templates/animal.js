@@ -31,18 +31,18 @@ export default (value) => {
       return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
     }
 
+    // 定義一個名為 truncate 的函式，參數 text 為輸入字串，max 為最多顯示的字元數，預設為 40 字元
     const truncate = (text, max = 40) =>
+      // 第一步：確保 text 是字串，如果是 null、undefined 或其他非字串值，就轉成空字串
       String(text || '')
+        // 第二步：把字串中的換行符號 \n 換成空白，避免在 Flex Message 中出現斷行問題
         .replace(/\n/g, ' ')
+        // 第三步：從開頭取出前 max 個字元（預設 40 個），多的就省略掉
         .slice(0, max)
 
-    const isValidImageUrl = (url) => {
-      return typeof url === 'string' && /^https:\/\/.+\.(jpg|jpeg|png)$/i.test(url)
-    }
-
-    const imageUrl = isValidImageUrl(value.album_file)
-      ? value.album_file
-      : 'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png'
+    const imageUrl =
+      safeText(value.album_file) ||
+      'https://developers-resource.landpress.line.me/fx/img/01_2_restaurant.png'
 
     return {
       type: 'bubble',
@@ -143,7 +143,7 @@ export default (value) => {
           },
           {
             type: 'text',
-            text: `備註：${truncate(safeText(value.animal_remark), 60)}`,
+            text: `備註：${safeText(value.animal_remark)}`,
             wrap: true,
             color: '#999999',
             size: 'sm',
@@ -184,7 +184,7 @@ export default (value) => {
             margin: 'xs',
             action: {
               type: 'uri',
-              uri: `https://www.google.com/maps/place/${encodeURIComponent(safeText(value.shelter_address))}`,
+              uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(value.shelter_name))}`,
               label: truncate(safeText(value.shelter_address), 40),
             },
             color: '#0b748a',

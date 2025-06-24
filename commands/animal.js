@@ -29,11 +29,6 @@ export default async (event, type = null) => {
 
     let filtered = data
 
-    // 如果是位置訊息，提醒使用選單查詢
-    if (event.message?.type === 'location') {
-      return await event.reply('目前尚無法使用位置搜尋，請使用「認領養」選單依地區選擇')
-    }
-
     if (Array.isArray(type)) {
       console.log('[commandAnimal] 篩選條件 (type array):', type)
       const [animalType, , city, age, bodytype, sex] = type // regionBig 不用
@@ -49,7 +44,7 @@ export default async (event, type = null) => {
 
         // 判斷縣市
         const cityMatch = city ? item.shelter_address?.includes(city) : true
-        // console.log('aaaaaaaaaaaaaaaaaaaaaaaaa', cityMatch)
+
         // 年齡映射 + 比對（包含 N 代號）
         const ageLabel = mapOrPending(item.animal_age, ageMap)
         const ageMatch = age ? ageLabel === age : true
@@ -86,7 +81,6 @@ export default async (event, type = null) => {
       return await event.reply('抱歉，目前沒有找到符合條件的動物')
     }
 
-    // console.log(filtered)
     const bubbles = filtered
       .map((value) => {
         try {
@@ -98,7 +92,6 @@ export default async (event, type = null) => {
       })
       .filter(Boolean)
 
-    console.log('XXXXXXXXXXXXXXXXXXXXXXXX', bubbles)
     if (bubbles.length === 0) {
       return await event.reply('目前有符合條件的資料，但 Flex 格式產生失敗！')
     } else if (bubbles.length > 0) {
@@ -107,19 +100,14 @@ export default async (event, type = null) => {
 
     console.log('[commandAnimal] Flex bubbles 數量:', bubbles.length)
 
-    try {
-      await event.reply({
-        type: 'flex',
-        altText: '認領養動物列表',
-        contents: {
-          type: 'carousel',
-          contents: bubbles,
-        },
-      })
-    } catch (e) {
-      console.error('[commandAnimal] 回覆失敗:', e)
-      await event.reply('Flex 回覆失敗，可能是資料格式錯誤或太大。')
-    }
+    await event.reply({
+      type: 'flex',
+      altText: '認領養動物列表',
+      contents: {
+        type: 'carousel',
+        contents: bubbles,
+      },
+    })
   } catch (error) {
     console.error('[commandAnimal] 錯誤:', error)
     await event.reply('發生錯誤，請稍後再試')
