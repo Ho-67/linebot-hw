@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import linebot from 'linebot'
-import commandHospital from './commands/hospital.js'
+import commandVet from './commands/vet.js'
 import commandAdopt from './commands/adoptQR.js'
 
 const bot = linebot({
@@ -11,7 +11,7 @@ const bot = linebot({
 
 bot.on('message', (event) => {
   if (event.message.type === 'location') {
-    commandHospital(event)
+    commandVet(event)
   } else if (event.message.type === 'text') {
     const msg = event.message.text.toLowerCase()
     if (msg === '認領養') {

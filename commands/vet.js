@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { distance } from '../utils/distance.js'
-import template from '../templates/hospital.js'
+import template from '../templates/vet.js'
 
 export default async (event) => {
   try {
@@ -28,23 +28,22 @@ export default async (event) => {
       .slice(0, 3)
       // 套用 flex 模板
       .map((value) => {
-        const address = value.City + value.Town + value.Address
         const bubble = template()
 
-        // 填入基本資料
-        bubble.header.contents[0].text = value.OrgName || '機構名稱'
-        bubble.header.contents[1].text = value.Tel || '無電話'
-        bubble.header.contents[2].text = value.Address || '無地址'
-        bubble.header.contents[3].text = `距離 ${value.distance.toFixed(1)} 公里`
+        bubble.body.contents[0].text = value.機構名稱 || '無機構名稱'
+        bubble.body.contents[1].text = value.機構地址 || '無地址資訊'
+        bubble.body.contents[2].text = `距離：約 ${value.distance.toFixed(1)} 公里`
 
-        // 設定按鈕：Google 地圖 + 撥打電話
-        bubble.body.contents[0].action.uri = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-        bubble.body.contents[1].action.uri = `tel:${(value.Tel || '').replace(/\s/g, '')}`
+        bubble.footer.contents[0].action.uri = `tel:${value.機構電話?.replace(/[^\d]/g, '') || ''}` // 把電話號碼中所有非數字字元移除，只保留純數字
+        bubble.footer.contents[0].action.label = value.機構電話 || '撥打電話'
+
+        bubble.footer.contents[1].action.uri = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value.機構地址)}`
+        bubble.footer.contents[1].action.label = 'Google地圖'
 
         return bubble
       })
 
-    // 回傳 Flex Carousel
+    // 將 bubble 回傳給使用者
     await event.reply({
       type: 'flex',
       altText: '附近的動物醫院',
@@ -54,7 +53,7 @@ export default async (event) => {
       },
     })
   } catch (error) {
-    console.error(error)
+    console.error('[commandVet] 錯誤:', error)
     await event.reply('發生錯誤，請稍後再試')
   }
 }
