@@ -16,7 +16,7 @@ async function initializeBot() {
   try {
     // 讀取預處理後的動物醫院資料
     console.log('正在載入預處理後的動物醫院資料...')
-    const data = await fs.readFile('./preprocessed_vet_data.json', 'utf8')
+    const data = await fs.readFile('./dump/preprocessed_vet_data.json', 'utf8')
     const preprocessedVetData = JSON.parse(data)
     setPreprocessedData(preprocessedVetData)
     console.log(`成功載入 ${preprocessedVetData.length} 筆動物醫院資料`)

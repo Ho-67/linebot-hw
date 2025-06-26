@@ -2,7 +2,7 @@ import { promises as fs } from 'fs'
 
 export async function readVetStats() {
   try {
-    const raw = await fs.readFile('./preprocess_vet_stats.json', 'utf8')
+    const raw = await fs.readFile('../dump/preprocess_vet_stats.json', 'utf8')
     const stats = JSON.parse(raw)
 
     // 將 ISO 時間轉為台灣時間格式
