@@ -4,6 +4,11 @@ import commandVet, { setPreprocessedData } from './commands/vet.js'
 import commandAdopt from './commands/adoptQR.js'
 import { promises as fs } from 'fs'
 import { readVetStats } from './utils/readVetStats.js'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const bot = linebot({
   channelId: process.env.CHANNEL_ID,
@@ -16,7 +21,8 @@ async function initializeBot() {
   try {
     // 讀取預處理後的動物醫院資料
     console.log('正在載入預處理後的動物醫院資料...')
-    const data = await fs.readFile('./dump/preprocessed_vet_data.json', 'utf8')
+    const vetDataPath = join(__dirname, 'dump', 'preprocessed_vet_data.json')
+    const data = await fs.readFile(vetDataPath, 'utf8')
     const preprocessedVetData = JSON.parse(data)
     setPreprocessedData(preprocessedVetData)
     console.log(`成功載入 ${preprocessedVetData.length} 筆動物醫院資料`)

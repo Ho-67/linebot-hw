@@ -1,8 +1,14 @@
 import { promises as fs } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 export async function readVetStats() {
   try {
-    const raw = await fs.readFile('../dump/preprocess_vet_stats.json', 'utf8')
+    const statsPath = join(__dirname, '../dump/preprocess_vet_stats.json')
+    const raw = await fs.readFile(statsPath, 'utf8')
     const stats = JSON.parse(raw)
 
     // 將 ISO 時間轉為台灣時間格式
