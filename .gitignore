@@ -3,3 +3,4 @@ node_modules
 dump/*
 !dump/.gitkeep
 !dump/preprocessed_vet_data.json
+!dump/preprocess_vet_stats.json
