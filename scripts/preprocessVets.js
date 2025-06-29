@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename)
 // 控制是否啟用測試模式
 // 設為 true 則只處理 TEST_RECORD_LIMIT 筆資料
 // 設為 false 則處理所有從 API 下載的資料
-const TEST_MODE_ENABLED = true // <--- 設置為 true 進行測試，設為 false 處理全部資料
+const TEST_MODE_ENABLED = false // <--- 設置為 true 進行測試，設為 false 處理全部資料
 const TEST_RECORD_LIMIT = 10 // 當 TEST_MODE_ENABLED 為 true 時，要處理的資料筆數
 
 const MOA_API_URL =
