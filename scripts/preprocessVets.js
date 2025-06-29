@@ -21,7 +21,19 @@ const PROCESSED_DATA_PATH = path.join(__dirname, '..', 'dump', 'preprocessed_vet
 const STATS_PATH = path.join(__dirname, '..', 'dump', 'preprocess_vet_stats.json')
 
 const NOMINATIM_REQUEST_DELAY = 1100 // Nominatim 請求間隔，建議至少 1000ms (1秒)
+const BATCH_SIZE = 100 // 每批處理筆數（可視情況調整）
 // --- 設定區塊 END ---
+
+// 讀取已處理資料（若檔案不存在回傳空陣列）
+async function loadProcessedData() {
+  try {
+    const content = await fs.readFile(PROCESSED_DATA_PATH, 'utf8')
+    return JSON.parse(content)
+  } catch {
+    // 檔案不存在或讀取錯誤，回傳空陣列，表示無已處理資料
+    return []
+  }
+}
 
 async function preprocessVetData() {
   console.log('--- 開始預處理動物醫院資料 ---')
@@ -41,44 +53,85 @@ async function preprocessVetData() {
       currentRunType = `測試模式 (前 ${TEST_RECORD_LIMIT} 筆)`
     }
 
-    const processedData = []
+    // --- 嘗試讀取已處理資料 ---
+    const processedData = await loadProcessedData()
+    const processedCount = processedData.length
+    if (processedCount > 0) {
+      console.log(
+        `讀取到已處理資料 ${processedCount} 筆，將從第 ${processedCount + 1} 筆繼續處理。`,
+      )
+    }
+
     let geocodedCount = 0
-    let skippedCount = 0 // 因無法地理編碼而跳過的筆數
-    let existingCoordCount = 0 // 原始資料已有經緯度的筆數
+    let skippedCount = 0
+    let existingCoordCount = 0
+
+    // 計算已處理資料中已有經緯度筆數
+    for (const vet of processedData) {
+      if (vet.Latitude && vet.Longitude) existingCoordCount++
+    }
 
     console.log(`2. 正在進行資料處理及地理編碼 (${currentRunType})...`)
-    for (let i = 0; i < dataToProcess.length; i++) {
-      const vet = dataToProcess[i]
-      let lat = vet.Latitude
-      let lon = vet.Longitude
 
-      // 檢查原始資料是否有經緯度
-      if (lat && lon) {
-        existingCoordCount++
-      } else {
-        // 如果原始資料沒有經緯度，則進行地理編碼
-        const geo = await geocodeAddress(vet.機構地址)
-        if (geo) {
-          vet.Latitude = geo.lat
-          vet.Longitude = geo.lon
-          geocodedCount++
+    for (
+      let batchStart = processedCount;
+      batchStart < dataToProcess.length;
+      batchStart += BATCH_SIZE
+    ) {
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, dataToProcess.length)
+      const batch = dataToProcess.slice(batchStart, batchEnd)
+
+      for (let i = 0; i < batch.length; i++) {
+        const vet = batch[i]
+        let lat = vet.Latitude
+        let lon = vet.Longitude
+
+        // 檢查原始資料是否有經緯度
+        if (lat && lon) {
+          existingCoordCount++
         } else {
-          skippedCount++
-          console.warn(
-            `[${i + 1}/${dataToProcess.length}] 警告: 無法地理編碼 - "${vet.機構地址}"，此筆資料跳過。`,
-          )
-          continue // 跳過此筆資料，不加入 processedData
+          // 若無經緯度，呼叫地理編碼函式
+          const geo = await geocodeAddress(vet.機構地址)
+          if (geo) {
+            vet.Latitude = geo.lat
+            vet.Longitude = geo.lon
+            geocodedCount++
+          } else {
+            skippedCount++
+            console.warn(
+              `[${batchStart + i + 1}/${dataToProcess.length}] 警告: 無法地理編碼 - "${vet.機構地址}"，此筆資料跳過。`,
+            )
+            continue // 跳過此筆資料，不加入 processedData
+          }
+          // 每次對 Nominatim 發出請求後等待，以避免超出速率限制
+          await new Promise((resolve) => setTimeout(resolve, NOMINATIM_REQUEST_DELAY))
         }
-        // 每次對 Nominatim 發出請求後等待，以避免超出速率限制
-        await new Promise((resolve) => setTimeout(resolve, NOMINATIM_REQUEST_DELAY))
-      }
-      processedData.push(vet)
+        processedData.push(vet)
 
-      // 每處理一定數量或在測試模式下每筆都顯示進度
-      const logInterval = TEST_MODE_ENABLED ? 1 : 100
-      if ((i + 1) % logInterval === 0 || i + 1 === dataToProcess.length) {
-        console.log(` 進度: ${i + 1} / ${dataToProcess.length} 筆已處理`)
+        const logInterval = TEST_MODE_ENABLED ? 1 : 100
+        if (
+          (batchStart + i + 1) % logInterval === 0 ||
+          batchStart + i + 1 === dataToProcess.length
+        ) {
+          console.log(` 進度: ${batchStart + i + 1} / ${dataToProcess.length} 筆已處理`)
+        }
       }
+
+      // 每批結束時定時保存當前進度和統計數據，防止意外中斷導致資料遺失
+      await fs.writeFile(PROCESSED_DATA_PATH, JSON.stringify(processedData, null, 2), 'utf8')
+      const stats = {
+        totalInputRecords: dataToProcess.length,
+        originalWithCoords: existingCoordCount,
+        geocodedByAddress: geocodedCount,
+        skipped: skippedCount,
+        savedToOutput: processedData.length,
+        lastUpdated: new Date().toISOString(),
+        runMode: currentRunType,
+      }
+      await fs.writeFile(STATS_PATH, JSON.stringify(stats, null, 2), 'utf8')
+      console.log(
+        ` 已保存進度至 ${PROCESSED_DATA_PATH} 與 ${STATS_PATH} （處理至第 ${batchEnd} 筆）`,
+      )
     }
 
     console.log('3. 資料處理完成。')
@@ -89,19 +142,24 @@ async function preprocessVetData() {
 
     console.log(`4. 正在將處理後的資料保存到 ${PROCESSED_DATA_PATH}`)
     await fs.writeFile(PROCESSED_DATA_PATH, JSON.stringify(processedData, null, 2), 'utf8')
+    await fs.writeFile(
+      STATS_PATH,
+      JSON.stringify(
+        {
+          totalInputRecords: dataToProcess.length,
+          originalWithCoords: existingCoordCount,
+          geocodedByAddress: geocodedCount,
+          skipped: skippedCount,
+          savedToOutput: processedData.length,
+          lastUpdated: new Date().toISOString(),
+          runMode: currentRunType,
+        },
+        null,
+        2,
+      ),
+      'utf8',
+    )
     console.log(' 預處理資料保存成功。')
-
-    const stats = {
-      totalInputRecords: dataToProcess.length, // 注意這裡改為處理的筆數 (測試模式下為 TEST_RECORD_LIMIT)
-      originalWithCoords: existingCoordCount,
-      geocodedByAddress: geocodedCount,
-      skipped: skippedCount,
-      savedToOutput: processedData.length,
-      lastUpdated: new Date().toISOString(),
-      runMode: currentRunType, // 增加運行模式的記錄
-    }
-    await fs.writeFile(STATS_PATH, JSON.stringify(stats, null, 2), 'utf8')
-    console.log(` 統計數據已保存至 ${STATS_PATH}`)
   } catch (error) {
     console.error('預處理資料時發生錯誤:', error)
     if (error.response) {

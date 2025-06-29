@@ -1,9 +1,9 @@
 {
   "totalInputRecords": 2042,
   "originalWithCoords": 0,
-  "geocodedByAddress": 1691,
-  "skipped": 351,
-  "savedToOutput": 1691,
-  "lastUpdated": "2025-06-28T21:22:23.167Z",
+  "geocodedByAddress": 1877,
+  "skipped": 165,
+  "savedToOutput": 1877,
+  "lastUpdated": "2025-06-29T07:37:28.531Z",
   "runMode": "完整處理"
 }
