@@ -40,8 +40,6 @@ async function initializeBot() {
   }
 }
 
-initializeBot()
-
 bot.on('message', (event) => {
   if (event.message.type === 'location') {
     console.log(`使用者傳送位置:`, event.message.latitude, event.message.longitude)
@@ -62,4 +60,6 @@ bot.on('postback', async (event) => {
 
 bot.listen('/', process.env.PORT || 3000, () => {
   console.log('機器人啟動')
+  // 初始化動物醫院資料（非阻塞）
+  initializeBot()
 })
