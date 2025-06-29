@@ -274,19 +274,29 @@ export async function validateAndFixLocation(location) {
   }
 }
 
-// 雙重條件(縣市鄉鎮 + 距離)比對動物醫院清單，回傳最近 maxResults 筆
+// 雙重條件(縣市鄉鎮 + 距離)比對動物醫院清單，回傳最近 maxResults 筆（支援模糊鄉鎮名稱）
 export function matchVetDataWithLocation(vetData, location, maxResults = 10) {
   const { city, district, lat: userLat, lon: userLon } = location
+
+  // 模糊鄉鎮比對：去掉「區」、「鄉」、「鎮」、「市」等尾字來比
+  function isDistrictRoughMatch(userDistrict, vetDistrict) {
+    if (!vetDistrict) return true // 如果原始資料沒填寫鄉鎮，放行比對
+    const clean = (str) => str.replace(/(區|鄉|鎮|市)$/, '')
+    return clean(userDistrict) === clean(vetDistrict)
+  }
+
+  // 篩選符合縣市與模糊鄉鎮的資料
   const filtered = vetData.filter((vet) => {
     const vetLat = Number(vet.Latitude)
     const vetLon = Number(vet.Longitude)
     if (isNaN(vetLat) || isNaN(vetLon)) return false
-    if (!vet.縣市 || !vet.鄉鎮) return false
-    if (vet.縣市 !== city) return false
-    if (vet.鄉鎮 !== district) return false
+    if (!vet.縣市 || vet.縣市 !== city) return false
+    if (!isDistrictRoughMatch(district, vet.鄉鎮)) return false
     return true
   })
+
   const threshold = getThreshold(city, district)
+
   const withDistance = filtered
     .map((vet) => {
       const vetLat = Number(vet.Latitude)
@@ -295,5 +305,6 @@ export function matchVetDataWithLocation(vetData, location, maxResults = 10) {
       return { ...vet, distance: dist }
     })
     .filter((vet) => vet.distance <= threshold)
+
   return withDistance.sort((a, b) => a.distance - b.distance).slice(0, maxResults)
 }
