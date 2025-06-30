@@ -1,6 +1,5 @@
 import { distance } from '../utils/distance.js'
 import template from '../templates/vet.js'
-import { validateAndFixLocation } from '../utils/geocode.js'
 
 let preprocessedVetData = []
 
@@ -12,7 +11,7 @@ export const setPreprocessedData = (data) => {
 export default async (event) => {
   try {
     if (!preprocessedVetData || preprocessedVetData.length === 0) {
-      await event.reply('動物醫院資料尚未載入，請稍後再試。')
+      await event.reply('動物醫院資料尚未載入，請執行 preprocessVets.js 後再試，或稍後重試。')
       console.error('[commandVet] 錯誤: 預處理後的動物醫院資料為空')
       return
     }
@@ -26,34 +25,21 @@ export default async (event) => {
       return
     }
 
-    // ===== 新增：校正位置並取得縣市與鄉鎮 =====
-    const userLocation = await validateAndFixLocation({ lat: userLat, lon: userLon })
-    if (!userLocation) {
-      await event.reply('無法辨識您的位置，請重新傳送位置或手動輸入地址。')
-      return
-    }
-    const { city: userCity, district: userDistrict, lat: fixedLat, lon: fixedLon } = userLocation
-
     const bubbles = []
 
-    // 只挑縣市鄉鎮相符的資料，減少錯誤結果
     for (const value of preprocessedVetData) {
       const lat = Number(value.Latitude)
       const lon = Number(value.Longitude)
       if (isNaN(lat) || isNaN(lon)) continue
 
-      // 先用關鍵字過濾縣市、鄉鎮 (你資料欄位名稱調整)
-      if (value.縣市 !== userCity) continue
-      if (value.鄉鎮 !== userDistrict) continue
-
-      const dist = distance(lat, lon, fixedLat, fixedLon, 'K')
+      const dist = distance(lat, lon, userLat, userLon, 'K')
       bubbles.push({ ...value, distance: dist })
     }
 
     console.log(`[commandVet] 計算完成，篩選出 ${bubbles.length} 筆有距離資料的動物醫院`)
 
     if (bubbles.length === 0) {
-      await event.reply('附近無符合條件的動物醫院資料，請稍後再試。')
+      await event.reply('附近無動物醫院資料，請檢查位置或稍後再試。')
       return
     }
 

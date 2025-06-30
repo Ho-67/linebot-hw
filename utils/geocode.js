@@ -8,10 +8,10 @@ const REQUEST_INTERVAL_MS = 1000
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// 判斷經緯度是否在台灣合理範圍
+// 檢查經緯度是否在台灣合理範圍內
 const isValidTaiwanLatLon = (lat, lon) => lat >= 20 && lat <= 26 && lon >= 119 && lon <= 123
 
-// 中文數字轉換（例：三十 → 30）
+// 轉換中文數字，以便Nominatim更好地識別地址
 function convertChineseNumbers(str) {
   const map = {
     一: '1',
@@ -25,6 +25,7 @@ function convertChineseNumbers(str) {
     九: '9',
     十: '10',
   }
+
   return str
     .replace(/([一二三四五六七八九]{1})十([一二三四五六七八九])?/g, (match, tens, units) => {
       const t = map[tens] || '0'
@@ -39,26 +40,43 @@ function convertChineseNumbers(str) {
     .replace(/零/g, '0')
 }
 
-function normalizeTai(str) {
-  return str?.replace(/臺/g, '台') || ''
-}
-
-// 多層地址查詢
+// 產生多種查詢字串，提高地理編碼成功率（多層地址查詢，順序調整為由完整到簡化）
 function generateQueries(address) {
   if (!address) return []
+
   const converted = convertChineseNumbers(address)
-  const normalized = converted.replace(/之\d+號/, '號')
-  const queries = [normalized, normalized.replace(/\d+號.*/, ''), normalized.replace(/\d+巷.*/, '')]
-  const noLane = normalized.replace(/\d+巷\d*之?\d*號?.*/, '')
-  if (noLane !== normalized) queries.push(noLane)
-  const townshipMatch = normalized.match(/^(.*?(縣|市).+?(鄉|鎮|市區))/)
+
+  // 處理「之字門牌號」，將 13之2號 轉成 13號
+  const normalizedAddress = converted.replace(/之\d+號/, '號')
+
+  const queries = []
+
+  // 加入完整地址（已正規化）
+  queries.push(normalizedAddress)
+
+  // 移除門牌號碼，例如「42號」後面全部移除
+  queries.push(normalizedAddress.replace(/\d+號.*/, ''))
+
+  // 移除巷號
+  queries.push(normalizedAddress.replace(/\d+巷.*/, ''))
+
+  // 移除巷號與門牌號
+  const noLane = normalizedAddress.replace(/\d+巷\d*之?\d*號?.*/, '')
+  if (noLane !== normalizedAddress) queries.push(noLane)
+
+  // 優先鄉鎮市區層級（township）
+  const townshipMatch = normalizedAddress.match(/^(.*?(縣|市).+?(鄉|鎮|市區))/)
   if (townshipMatch) queries.push(townshipMatch[0])
-  const cityMatch = normalized.match(/^(.*?(縣|市))/)
+
+  // 加入縣市層級
+  const cityMatch = normalizedAddress.match(/^(.*?(縣|市))/)
   if (cityMatch) queries.push(cityMatch[0])
+
+  // 過濾重複與過短查詢字串
   return [...new Set(queries)].filter((q) => q.length > 5)
 }
 
-// 向 Nominatim 查詢經緯度
+// 向 Nominatim API 發送請求（嘗試多次與延遲，防止過載）
 async function queryNominatim(query) {
   for (let i = 0; i < MAX_ATTEMPTS; i++) {
     try {
@@ -74,7 +92,8 @@ async function queryNominatim(query) {
           'User-Agent': `LineBot/1.0 ${process.env.CONTACT_EMAIL}`,
         },
       })
-      if (res.data?.length > 0) {
+
+      if (res.data && res.data.length > 0) {
         const { lat, lon, address } = res.data[0]
         const latNum = parseFloat(lat)
         const lonNum = parseFloat(lon)
@@ -83,179 +102,130 @@ async function queryNominatim(query) {
         }
       }
     } catch (e) {
-      console.error(`[queryNominatim] 第 ${i + 1} 次失敗, 查詢: "${query}" 錯誤:`, e.message)
+      console.error(`[queryNominatim] 嘗試失敗 (第${i + 1}次), 查詢: "${query}" 錯誤:`, e.message)
     }
     await delay(REQUEST_INTERVAL_MS)
   }
   return null
 }
 
-// 根據行政區取得距離容忍閾值
+// 取得距離閾值
 function getThreshold(city, district) {
-  const setting = districtDistanceThresholds[city]
-  if (!setting) return districtDistanceThresholds.default
-  if (typeof setting === 'number') return setting
-  if (typeof setting === 'object') {
-    if (setting[district]) return setting[district]
-    if (Array.isArray(setting) && setting.includes(district)) return 4
-    return setting.default || districtDistanceThresholds.default
+  const cityThreshold = districtDistanceThresholds[city]
+
+  if (!cityThreshold) {
+    return districtDistanceThresholds.default
+  }
+
+  if (typeof cityThreshold === 'number') {
+    return cityThreshold
+  }
+
+  if (typeof cityThreshold === 'object' && cityThreshold !== null) {
+    if (cityThreshold[district]) {
+      return cityThreshold[district]
+    }
+    if (Array.isArray(cityThreshold) && cityThreshold.includes(district)) {
+      return 4
+    }
+    return cityThreshold.default || districtDistanceThresholds.default
   }
   return districtDistanceThresholds.default
 }
 
-// 地址 → 經緯度主函式
+/**
+ * 地理編碼主函式
+ * @param {string} address
+ * @param {object} [cache] - 可選：地址與結果快取，格式 { [address]: { lat, lon } }
+ * @returns {Promise<{lat:number, lon:number} | null>}
+ */
 export async function geocodeAddress(address, cache = {}) {
-  if (!address) return null
-  if (cache[address]) return cache[address]
+  if (!address) {
+    console.log('[geocodeAddress] 地址為空，跳過地理編碼。')
+    return null
+  }
 
+  // 若有快取，優先回傳
+  if (cache[address]) {
+    // console.log(`[geocodeAddress] 從快取獲得 "${address}" 的座標`)
+    return cache[address]
+  }
+
+  // 產生多層地址查詢字串（多層嘗試查詢）
   const queries = generateQueries(address)
-  console.log(`[geocodeAddress] 嘗試為 "${address}" 生成查詢:`, queries)
+  console.log(`[geocodeAddress] 嘗試為地址 "${address}" 進行地理編碼，生成查詢:`, queries)
 
   for (const query of queries) {
     const result = await queryNominatim(query)
-    if (result) {
-      const { lat, lon, address: addr } = result
-      const city = addr?.county || addr?.state || addr?.city || ''
-      let district =
-        addr?.city_district || addr?.town || addr?.village || addr?.suburb || addr?.hamlet || ''
 
+    if (result) {
+      const { lat, lon, address: resultAddress } = result
+
+      // 多層行政區名稱判斷（優先 county, state, city）
+      const city = resultAddress?.county || resultAddress?.state || resultAddress?.city || ''
+
+      // 嘗試依優先順序取得 district，避免取到村里級別造成誤判
+      let district = ''
+      if (resultAddress?.city_district) district = resultAddress.city_district
+      else if (resultAddress?.town) district = resultAddress.town
+      else if (resultAddress?.village) district = resultAddress.village
+      else if (resultAddress?.suburb) district = resultAddress.suburb
+      else if (resultAddress?.hamlet) district = resultAddress.hamlet
+      else district = ''
+
+      const fallbackDistrict = district
+
+      // 若找不到手動覆蓋，嘗試用鄉鎮或市區名稱替代（避免錯誤里村匹配）
       if (!manualOverrides?.[city]?.[district]) {
-        if (district !== addr?.town && addr?.town) district = addr.town
-        else if (district !== addr?.city_district && addr?.city_district)
-          district = addr.city_district
+        if (district !== resultAddress?.town && resultAddress?.town) {
+          district = resultAddress.town
+        } else if (district !== resultAddress?.city_district && resultAddress?.city_district) {
+          district = resultAddress.city_district
+        }
       }
 
+      // 取手動覆蓋的中心點
       const override = manualOverrides?.[city]?.[district]
+
       if (override) {
         const dist = calcDistance(lat, lon, override.lat, override.lon, 'K')
-        const threshold = getThreshold(normalizeTai(city), normalizeTai(district))
+        const threshold = getThreshold(city, district)
+
+        // 距離容忍度判斷，多層防呆，距離過大則使用手動中心點
         if (dist > threshold) {
-          console.log(`[geocodeAddress] 誤差 ${dist.toFixed(2)}km 超過 ${threshold}km，用中心點`)
+          console.log(
+            `[geocodeAddress] 定位誤差過大！"${city}${district}" 地址經緯度 (${lat.toFixed(
+              6,
+            )}, ${lon.toFixed(6)}) 距中心點 (${override.lat.toFixed(6)}, ${override.lon.toFixed(
+              6,
+            )}) 距離 ${dist.toFixed(2)} 公里，超過閾值 ${threshold} 公里。已使用中心點座標。`,
+          )
           cache[address] = override
           return override
         } else {
-          console.log(`[geocodeAddress] 定位可接受，使用原結果 (${lat}, ${lon})`)
+          console.log(
+            `[geocodeAddress] 定位誤差可接受，維持 Nominatim 原始結果 "${city}${district}" (${lat.toFixed(
+              7,
+            )}, ${lon.toFixed(7)})，距離: ${dist.toFixed(2)} km`,
+          )
           cache[address] = { lat, lon }
           return { lat, lon }
         }
       } else {
-        console.log(`[geocodeAddress] 無手動中心點，使用 Nominatim 結果 (${lat}, ${lon})`)
+        // 找不到手動中心點，直接使用 Nominatim 回傳結果
+        console.log(
+          `[geocodeAddress] 未找到 "${city}${district}" (嘗試前一層名稱 "${fallbackDistrict}") 的手動中心點數據，使用 Nominatim 原始結果 (${lat.toFixed(
+            7,
+          )}, ${lon.toFixed(7)})。`,
+        )
         cache[address] = { lat, lon }
         return { lat, lon }
       }
     }
+
     await delay(REQUEST_INTERVAL_MS)
   }
 
-  console.warn(`[geocodeAddress] 找不到 "${address}" 對應位置`)
+  console.warn(`[geocodeAddress] 警告: 無法為地址 "${address}" 找到有效的地理編碼結果。`)
   return null
-}
-
-// 經緯度 → 地址
-export async function reverseGeocode(lat, lon) {
-  for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    try {
-      const res = await axios.get('https://nominatim.openstreetmap.org/reverse', {
-        params: {
-          lat,
-          lon,
-          format: 'json',
-          addressdetails: 1,
-          zoom: 10,
-          countrycodes: 'tw',
-        },
-        headers: {
-          'User-Agent': `LineBot/1.0 ${process.env.CONTACT_EMAIL}`,
-        },
-      })
-      if (res.data?.address) return res.data.address
-    } catch (e) {
-      console.error(`[reverseGeocode] 第 ${i + 1} 次失敗:`, e.message)
-    }
-    await delay(REQUEST_INTERVAL_MS)
-  }
-  return null
-}
-
-// 驗證與修正位置
-export async function validateAndFixLocation({ lat, lon }) {
-  if (!isValidTaiwanLatLon(lat, lon)) {
-    console.warn('[validateAndFixLocation] 經緯度不在台灣範圍:', lat, lon)
-    return null
-  }
-
-  console.log(`[validateAndFixLocation] 反查 (${lat}, ${lon})`)
-  const address = await reverseGeocode(lat, lon)
-  if (!address) return null
-
-  console.log('[validateAndFixLocation] 地址為:', address)
-  const city = address.county || address.state || address.city || ''
-  let district =
-    address.city_district ||
-    address.town ||
-    address.village ||
-    address.suburb ||
-    address.hamlet ||
-    ''
-
-  if (!manualOverrides?.[city]?.[district]) {
-    if (district !== address.town && address.town) district = address.town
-    else if (district !== address.city_district && address.city_district)
-      district = address.city_district
-  }
-
-  const override = manualOverrides?.[normalizeTai(city)]?.[normalizeTai(district)]
-  if (override) {
-    const dist = calcDistance(lat, lon, override.lat, override.lon, 'K')
-    const threshold = getThreshold(normalizeTai(city), normalizeTai(district))
-    if (dist > threshold) {
-      console.log(`[validateAndFixLocation] 超出閾值，使用手動中心點`)
-      return { city, district, lat: override.lat, lon: override.lon }
-    }
-  }
-
-  return { city, district, lat, lon }
-}
-
-// 動物醫院配對
-export function matchVetDataWithLocation(vetData, location, maxResults = 10) {
-  const { city, district, lat: userLat, lon: userLon } = location
-
-  const isDistrictRoughMatch = (a, b) => {
-    if (!b || b.trim() === '') return true
-    const clean = (s) => s.replace(/(區|鄉|鎮|市)$/, '')
-    return clean(a) === clean(b)
-  }
-
-  const normalizeTai = (s) => s?.replace(/臺/g, '台') || ''
-  const normalizeCity = normalizeTai
-  const userCity = normalizeCity(city)
-  const threshold = getThreshold(normalizeTai(city), normalizeTai(district))
-
-  let filtered = vetData.filter((vet) => {
-    const vetLat = Number(vet.Latitude)
-    const vetLon = Number(vet.Longitude)
-    if (isNaN(vetLat) || isNaN(vetLon)) return false
-    if (!vet.縣市 || normalizeCity(vet.縣市) !== userCity) return false
-    return isDistrictRoughMatch(normalizeTai(district), normalizeTai(vet.鄉鎮))
-  })
-
-  if (filtered.length === 0) {
-    console.warn(`[matchVetDataWithLocation] 無模糊鄉鎮結果 → 只比對縣市`)
-    filtered = vetData.filter(
-      (vet) =>
-        normalizeCity(vet.縣市) === userCity &&
-        !isNaN(Number(vet.Latitude)) &&
-        !isNaN(Number(vet.Longitude)),
-    )
-  }
-
-  const withDistance = filtered
-    .map((vet) => {
-      const dist = calcDistance(userLat, userLon, Number(vet.Latitude), Number(vet.Longitude), 'K')
-      return { ...vet, distance: dist }
-    })
-    .filter((vet) => vet.distance <= threshold)
-
-  return withDistance.sort((a, b) => a.distance - b.distance).slice(0, maxResults)
 }
