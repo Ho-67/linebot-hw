@@ -48,21 +48,7 @@ export default async (event) => {
       .slice(0, 3)
       .map((value) => {
         try {
-          const bubble = template()
-
-          bubble.body.contents[0].text = value.機構名稱
-          bubble.body.contents[1].text = value.機構地址
-          bubble.body.contents[2].text = `距離：約 ${value.distance.toFixed(1)} 公里`
-
-          bubble.footer.contents[0].action.uri = `tel:${value.機構電話?.replace(/[^\d]/g, '') || ''}`
-          bubble.footer.contents[0].action.label = value.機構電話
-            ? `撥打：${value.機構電話}`
-            : '撥打電話'
-
-          bubble.footer.contents[1].action.uri = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value.機構名稱)}`
-          bubble.footer.contents[1].action.label = 'Google地圖'
-
-          return bubble
+          return template(value)
         } catch (e) {
           console.warn('[commandVet] 建立 Bubble 失敗，略過此筆:', e)
           return null
