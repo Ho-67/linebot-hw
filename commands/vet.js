@@ -43,22 +43,22 @@ export default async (event) => {
       return
     }
 
-    const sorted = bubbles
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 3)
-      .map((value) => {
-        try {
-          return template(value)
-        } catch (e) {
-          console.warn('[commandVet] 建立 Bubble 失敗，略過此筆:', e)
-          return null
-        }
-      })
-      .filter(Boolean)
+    const sorted = bubbles.sort((a, b) => a.distance - b.distance).slice(0, 3)
 
-    console.log(`[commandVet] 產生 Flex Bubble，共 ${sorted.length} 筆`)
+    // 先印出待產生的資料，方便 debug
+    console.log('[commandVet] 排序後，準備產生 Flex Bubble 的資料:', sorted)
 
-    if (sorted.length === 0) {
+    // 嘗試產生所有 bubble，若有錯誤，直接丟出拋錯給外層 catch
+    const flexBubbles = sorted.map((value) => {
+      try {
+        return template(value)
+      } catch (e) {
+        console.error('[commandVet] 產生 bubble 失敗:', e, value)
+        throw e
+      }
+    })
+
+    if (flexBubbles.length === 0) {
       await event.reply('無法生成附近動物醫院列表，請稍後再試。')
       return
     }
@@ -68,7 +68,7 @@ export default async (event) => {
       altText: '附近的動物醫院',
       contents: {
         type: 'carousel',
-        contents: sorted,
+        contents: flexBubbles,
       },
     })
     console.log('[commandVet] 已成功回覆用戶附近動物醫院資訊')
