@@ -10,7 +10,7 @@ const truncate = (text, max = 40) =>
 
 export default (value = {}) => {
   const phone = (value.機構電話 || '').replace(/[^\d]/g, '')
-  const phoneUri = phone ? `tel:${phone}` : 'tel:' // 避免 tel: 空字串導致錯誤
+  const phoneUri = phone ? `tel:${phone}` : 'tel:'
 
   return {
     type: 'bubble',
@@ -57,12 +57,12 @@ export default (value = {}) => {
       contents: [
         {
           type: 'button',
-          style: phone ? 'link' : 'secondary', // 若無電話改變樣式避免誤導
+          style: phone ? 'link' : 'secondary',
           height: 'sm',
           action: {
             type: 'uri',
             uri: phoneUri,
-            label: phone ? `撥打：${value.機構電話}` : '電話無效',
+            label: phone ? truncate(`撥打：${value.機構電話}`, 30) : '電話無效',
           },
           color: '#9b1c09',
           enabled: !!phone,
@@ -74,7 +74,7 @@ export default (value = {}) => {
           action: {
             type: 'uri',
             label: 'Google地圖',
-            uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(safeText(value.機構名稱))}`,
+            uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(truncate(safeText(value.機構名稱), 40))}`,
           },
           color: '#14207a',
         },
