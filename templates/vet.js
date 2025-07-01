@@ -1,93 +1,92 @@
-const safeText = (text) => {
-  const cleaned = String(text || '').trim()
-  return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
-}
+export default (value) => {
+  try {
+    const safeText = (text) => {
+      const cleaned = String(text || '').trim()
+      return cleaned && cleaned !== 'null' && cleaned !== 'undefined' ? cleaned : '無資料'
+    }
 
-const truncate = (text, max = 40) =>
-  String(text || '')
-    .replace(/\n/g, ' ')
-    .slice(0, max)
+    // 加強電話處理
+    const rawPhone = safeText(value.phone)
+    const phoneUri =
+      rawPhone && rawPhone !== '無資料' ? `tel:${rawPhone.replace(/[^\d]/g, '')}` : ''
+    const phoneLabel = rawPhone && rawPhone !== '無資料' ? `撥打：${rawPhone}` : '撥打電話'
 
-export default (value = {}) => {
-  const phone = (value.機構電話 || '').replace(/[^\d]/g, '')
-  const phoneUri = phone ? `tel:${phone}` : 'tel:'
-
-  return {
-    type: 'bubble',
-    body: {
-      type: 'box',
-      layout: 'vertical',
-      contents: [
-        {
-          type: 'text',
-          text: truncate(safeText(value.機構名稱), 40),
-          weight: 'bold',
-          size: 'lg',
-          color: '#ffffff',
-          wrap: true,
-          align: 'center',
-          maxLines: 2,
-        },
-        {
-          type: 'text',
-          text: truncate(safeText(value.機構地址), 40),
-          color: '#eae0e0',
-          wrap: true,
-          align: 'center',
-          size: 'sm',
-          maxLines: 2,
-        },
-        {
-          type: 'text',
-          text:
-            value.distance !== undefined && value.distance !== null
-              ? `距離：約 ${value.distance.toFixed(1)} 公里`
-              : '距離資料缺失',
-          size: 'md',
-          color: '#fff8f0',
-          align: 'center',
-        },
-      ],
-      paddingBottom: '16px',
-    },
-    footer: {
-      type: 'box',
-      layout: 'vertical',
-      spacing: 'sm',
-      contents: [
-        {
-          type: 'button',
-          style: phone ? 'link' : 'secondary',
-          height: 'sm',
-          action: {
-            type: 'uri',
-            uri: phoneUri,
-            label: phone ? truncate(`撥打：${value.機構電話}`, 30) : '電話無效',
-          },
-          color: '#9b1c09',
-          enabled: !!phone,
-        },
-        {
-          type: 'button',
-          style: 'link',
-          height: 'sm',
-          action: {
-            type: 'uri',
-            label: 'Google地圖',
-            uri: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(truncate(safeText(value.機構名稱), 40))}`,
-          },
-          color: '#14207a',
-        },
-      ],
-      flex: 0,
-    },
-    styles: {
+    return {
+      type: 'bubble',
       body: {
-        backgroundColor: '#216788',
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            text: safeText(value.name),
+            weight: 'bold',
+            size: 'lg',
+            color: '#ffffff',
+            wrap: true,
+            align: 'center',
+            maxLines: 2,
+          },
+          {
+            type: 'text',
+            text: safeText(value.address),
+            color: '#eae0e0',
+            wrap: true,
+            align: 'center',
+            size: 'sm',
+            maxLines: 2,
+          },
+          {
+            type: 'text',
+            text: `距離：約 ${safeText(value.distance)} 公里`,
+            size: 'md',
+            color: '#fff8f0',
+            align: 'center',
+          },
+        ],
+        paddingBottom: '16px',
       },
       footer: {
-        backgroundColor: '#bbccda',
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'button',
+            style: 'link',
+            height: 'sm',
+            action: {
+              type: 'uri',
+              uri: phoneUri,
+              label: phoneLabel,
+            },
+            color: '#9b1c09',
+          },
+          {
+            type: 'button',
+            style: 'link',
+            height: 'sm',
+            action: {
+              type: 'uri',
+              label: 'Google地圖',
+              uri: safeText(value.mapUrl),
+            },
+            color: '#14207a',
+          },
+        ],
+        flex: 0,
       },
-    },
+      styles: {
+        body: {
+          backgroundColor: '#216788',
+        },
+        footer: {
+          backgroundColor: '#bbccda',
+        },
+      },
+    }
+  } catch (e) {
+    console.error('[template/vet] Flex Bubble 產生錯誤:', e, value)
+    throw e
   }
 }

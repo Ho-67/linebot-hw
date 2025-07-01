@@ -60,6 +60,5 @@ bot.on('postback', async (event) => {
 
 bot.listen('/', process.env.PORT || 3000, () => {
   console.log('機器人啟動')
-  // 初始化動物醫院資料（非阻塞）
   initializeBot()
 })
